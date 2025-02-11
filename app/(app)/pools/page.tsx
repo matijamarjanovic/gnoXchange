@@ -12,10 +12,7 @@ interface Pool {
 }
 
 export default function PoolsPage() {
-  const [selectedPool, setSelectedPool] = useState<Pool | null>(null)
-  const [pageSize] = useState(10)
-
-  // Placeholder pool data
+  const [pageSize] = useState(5)
   const pools: Pool[] = Array.from({ length: pageSize }, (_, i) => ({
     id: i + 1,
     name: `Pool ${i + 1}`,
@@ -23,10 +20,10 @@ export default function PoolsPage() {
     token1: 'USDC',
     liquidity: `$${(Math.random() * 1000000).toFixed(2)}`
   }))
+  const [selectedPool, setSelectedPool] = useState<Pool>(pools[0])
 
   return (
-    <div className="container mx-auto p-6 flex gap-6 h-full">
-      {/* Left side - Pool cards */}
+    <div className="container mx-auto p-6 flex gap-6">
       <div className="w-1/3 space-y-4">
         {pools.map((pool) => (
           <Card
@@ -45,40 +42,33 @@ export default function PoolsPage() {
         ))}
       </div>
 
-      {/* Right side - Swap card */}
       <div className="w-2/3">
-        {selectedPool ? (
-          <Card className="p-6 h-[500px] bg-gray-800 text-gray-400 border-none shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">
-              Swap - {selectedPool.token0}/{selectedPool.token1}
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                <p className="text-sm text-gray-400">From</p>
-                <input
-                  type="number"
-                  className="w-full mt-1 p-2 bg-transparent text-gray-300"
-                  placeholder="0.0"
-                />
-              </div>
-              <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                <p className="text-sm text-gray-400">To</p>
-                <input
-                  type="number"
-                  className="w-full mt-1 p-2 bg-transparent text-gray-300"
-                  placeholder="0.0"
-                />
-              </div>
-              <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
-                Swap
-              </button>
+        <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
+          <h2 className="text-2xl font-bold mb-4">
+            Swap - {selectedPool.token0}/{selectedPool.token1}
+          </h2>
+          <div className="space-y-4">
+            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
+              <p className="text-sm text-gray-400">From</p>
+              <input
+                type="number"
+                className="w-full mt-1 p-2 bg-transparent text-gray-300"
+                placeholder="0.0"
+              />
             </div>
-          </Card>
-        ) : (
-          <div className="h-full flex items-center justify-center text-gray-500">
-            Select a pool to start swapping
+            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
+              <p className="text-sm text-gray-400">To</p>
+              <input
+                type="number"
+                className="w-full mt-1 p-2 bg-transparent text-gray-300"
+                placeholder="0.0"
+              />
+            </div>
+            <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
+              Swap
+            </button>
           </div>
-        )}
+        </Card>
       </div>
     </div>
   )
