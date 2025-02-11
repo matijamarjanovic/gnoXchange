@@ -1,7 +1,7 @@
 'use client'
 
 import { Card } from '@/components/ui/card'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Pool {
   id: number
@@ -13,14 +13,24 @@ interface Pool {
 
 export default function PoolsPage() {
   const [pageSize] = useState(5)
-  const pools: Pool[] = Array.from({ length: pageSize }, (_, i) => ({
-    id: i + 1,
-    name: `Pool ${i + 1}`,
-    token0: 'ETH',
-    token1: 'USDC',
-    liquidity: `$${(Math.random() * 1000000).toFixed(2)}`
-  }))
-  const [selectedPool, setSelectedPool] = useState<Pool>(pools[0])
+  const [pools, setPools] = useState<Pool[]>([])
+  const [selectedPool, setSelectedPool] = useState<Pool | null>(null)
+
+  useEffect(() => {
+    const initialPools = Array.from({ length: pageSize }, (_, i) => ({
+      id: i + 1,
+      name: `Pool ${i + 1}`,
+      token0: 'ETH',
+      token1: 'USDC',
+      liquidity: `$${(Math.random() * 1000000).toFixed(2)}`
+    }))
+    setPools(initialPools)
+    setSelectedPool(initialPools[0])
+  }, [pageSize])
+
+  if (!selectedPool) {
+    return null 
+  }
 
   return (
     <div className="container mx-auto p-6 flex gap-6">
