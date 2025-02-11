@@ -13,7 +13,7 @@ interface Pool {
 
 export default function PoolsPage() {
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize] = useState(10)
 
   // Placeholder pool data
   const pools: Pool[] = Array.from({ length: pageSize }, (_, i) => ({
