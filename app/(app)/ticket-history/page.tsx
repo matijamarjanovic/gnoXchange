@@ -1,4 +1,6 @@
+'use client'
 import { mockNFTTickets, mockTickets } from "@/app/mock"
+import { SearchBar } from '@/components/search-bar'
 import { Card } from "@/components/ui/card"
 
 export default function TicketHistory() {
@@ -7,8 +9,15 @@ export default function TicketHistory() {
   )
 
   return (
-    <div className="container mx-auto p-6 h-[calc(100vh-48px)] overflow-hidden">
-      <div className="grid gap-1">
+    <div className="container mx-auto p-6 flex flex-col gap-4 overflow-hidden">
+      <SearchBar 
+        containerClassName="w-full"
+        placeholder="Search history..."
+        onChange={(value) => {
+          console.log(value)
+        }}
+      />
+      <div className="grid gap-1 overflow-auto scrollbar-thin">
         {sortedTickets.map((ticket) => (
           <Card 
             key={ticket.id} 
@@ -19,7 +28,7 @@ export default function TicketHistory() {
                 <span className="text-gray-500 w-16">{ticket.id}</span>
                 <span>
                   {ticket.assetIn.type === 'nft' 
-                    ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom?.toUpperCase() || ''}`
+                    ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ''}`
                     : `${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`
                   }
                 </span>
@@ -35,7 +44,12 @@ export default function TicketHistory() {
                   {ticket.status}
                 </span>
                 <span className="text-gray-500">
-                  {new Date(ticket.createdAt).toLocaleTimeString()}
+                  {new Date(ticket.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })}
                 </span>
               </div>
             </div>
