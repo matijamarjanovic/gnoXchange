@@ -10,13 +10,12 @@ export default function TicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
 
   useEffect(() => {
-    const cardHeight = 116 // height of each card in pixels
-    const cardGap = 16 // gap between cards (space-y-4 = 16px)
-    const containerPadding = 48 // padding-top + padding-bottom (p-6 = 24px * 2)
+    const cardHeight = 116 
+    const cardGap = 16
+    const containerPadding = 48 
     const containerHeight = window.innerHeight - containerPadding
     const calculatedPageSize = Math.floor(containerHeight / (cardHeight + cardGap))
     
-    // Take only the number of tickets that fit in the viewport
     const visibleTickets = mockTickets.slice(0, calculatedPageSize)
     setTickets(visibleTickets)
     setSelectedTicket(visibleTickets[0])
@@ -26,7 +25,6 @@ export default function TicketsPage() {
     return null
   }
 
-  // Function to format large numbers with proper decimals
   const formatAmount = (amount: number, decimals: number) => {
     return (amount / Math.pow(10, decimals)).toFixed(decimals)
   }
