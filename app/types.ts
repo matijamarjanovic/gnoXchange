@@ -1,9 +1,11 @@
 export interface Asset {
   type: string
-  path: string
-  name: string
-  symbol: string
-  decimals: number
+  path?: string
+  name?: string
+  symbol?: string
+  decimals?: number
+  denom?: string
+  tokenHubPath?: string
 }
 
 export interface Ticket {

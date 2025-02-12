@@ -231,4 +231,177 @@ export const mockTickets: Ticket[] = [
     expiresAt: '2025-02-16 06:42:22',
     status: 'open'
   }
+]
+
+export const mockNFTTickets: Ticket[] = [
+  {
+    id: 'nfts-5',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-b.NFTB_2'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 500000000,
+    createdAt: '2025-02-12 21:54:52',
+    expiresAt: '2025-02-13 21:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-6',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-b.NFTB_3'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 600000000,
+    createdAt: '2025-02-12 22:54:52',
+    expiresAt: '2025-02-13 22:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-7',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-a.NFTA_1'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 700000000,
+    createdAt: '2025-02-12 23:54:52',
+    expiresAt: '2025-02-13 23:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-8',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-c.NFTC_1'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 450000000,
+    createdAt: '2025-02-13 00:54:52',
+    expiresAt: '2025-02-14 00:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-9',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-b.NFTB_4'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 550000000,
+    createdAt: '2025-02-13 01:54:52',
+    expiresAt: '2025-02-14 01:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-10',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-a.NFTA_2'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 800000000,
+    createdAt: '2025-02-13 02:54:52',
+    expiresAt: '2025-02-14 02:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-11',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-c.NFTC_2'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 650000000,
+    createdAt: '2025-02-13 03:54:52',
+    expiresAt: '2025-02-14 03:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-12',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-b.NFTB_5'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 900000000,
+    createdAt: '2025-02-13 04:54:52',
+    expiresAt: '2025-02-14 04:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-13',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-a.NFTA_3'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 750000000,
+    createdAt: '2025-02-13 05:54:52',
+    expiresAt: '2025-02-14 05:54:52',
+    status: 'open'
+  },
+  {
+    id: 'nfts-14',
+    creator: 'g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y',
+    assetIn: {
+      type: 'nft',
+      tokenHubPath: 'gno.land/r/matijamarjanovic/test.nft-c.NFTC_3'
+    },
+    assetOut: {
+      type: 'coin',
+      denom: 'ugnot'
+    },
+    amountIn: 1,
+    minAmountOut: 850000000,
+    createdAt: '2025-02-13 06:54:52',
+    expiresAt: '2025-02-14 06:54:52',
+    status: 'open'
+  }
 ] 

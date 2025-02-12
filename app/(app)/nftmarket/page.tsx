@@ -1,22 +1,22 @@
 'use client'
 
-import { mockTickets } from '@/app/mock'
+import { mockNFTTickets } from '@/app/mock'
 import { Ticket } from '@/app/types'
 import { Card } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 
-export default function TicketsPage() {
+export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
 
   useEffect(() => {
-    const cardHeight = 116
+    const cardHeight = 100
     const cardGap = 16
     const containerPadding = 48
     const containerHeight = window.innerHeight - containerPadding
     const calculatedPageSize = Math.floor(containerHeight / (cardHeight + cardGap))
     
-    const visibleTickets = mockTickets.slice(0, calculatedPageSize)
+    const visibleTickets = mockNFTTickets.slice(0, calculatedPageSize)
     setTickets(visibleTickets)
     setSelectedTicket(visibleTickets[0])
   }, [])
@@ -25,8 +25,13 @@ export default function TicketsPage() {
     return null
   }
 
-  const formatAmount = (amount: number, decimals: number) => {
+  const formatAmount = (amount: number, decimals: number = 6) => {
     return (amount / Math.pow(10, decimals)).toFixed(decimals)
+  }
+
+  const getNFTName = (path: string) => {
+    const parts = path.split('.')
+    return parts[parts.length - 1]
   }
 
   return (
@@ -40,10 +45,9 @@ export default function TicketsPage() {
             }`}
             onClick={() => setSelectedTicket(ticket)}
           >
-            <h3 className="font-bold text-lg">Ticket {ticket.id}</h3>
+            <h3 className="font-bold text-lg">NFT {getNFTName(ticket.assetIn.tokenHubPath || '')}</h3>
             <div className="text-sm text-gray-400">
-              <p>{`${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`}</p>
-              <p>Amount: {formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 0)} {ticket.assetIn.symbol}</p>
+              <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
               <p>Status: {ticket.status}</p>
             </div>
           </Card>
@@ -53,7 +57,7 @@ export default function TicketsPage() {
       <div className="w-2/3">
         <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
           <h2 className="text-2xl font-bold mb-4">
-            P2P Trade - {selectedTicket.assetIn.symbol} → {selectedTicket.assetOut.symbol}
+            NFT Sale - {getNFTName(selectedTicket.assetIn.tokenHubPath || '')}
           </h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -67,15 +71,15 @@ export default function TicketsPage() {
               </div>
             </div>
             <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Selling</p>
-              <p className="text-gray-300">
-                {formatAmount(selectedTicket.amountIn, selectedTicket.assetIn.decimals ?? 0)} {selectedTicket.assetIn.symbol}
+              <p className="text-sm text-gray-400">NFT Path</p>
+              <p className="text-gray-300 break-all">
+                {selectedTicket.assetIn.tokenHubPath}
               </p>
             </div>
             <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Minimum Receiving</p>
+              <p className="text-sm text-gray-400">Price</p>
               <p className="text-gray-300">
-                {formatAmount(selectedTicket.minAmountOut, selectedTicket.assetOut.decimals ?? 0)} {selectedTicket.assetOut.symbol}
+                {formatAmount(selectedTicket.minAmountOut)} GNOT
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -89,7 +93,7 @@ export default function TicketsPage() {
               </div>
             </div>
             <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
-              Take Trade
+              Buy NFT
             </button>
           </div>
         </Card>
