@@ -36,7 +36,7 @@ export default function PoolsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 flex gap-6">
+    <div className="container mx-auto p-4 flex gap-6">
       <div className="w-1/3 space-y-4">
         {pools.map((pool) => (
           <Card
