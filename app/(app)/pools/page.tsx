@@ -12,12 +12,15 @@ interface Pool {
 }
 
 export default function PoolsPage() {
-  const [pageSize] = useState(5)
   const [pools, setPools] = useState<Pool[]>([])
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null)
 
   useEffect(() => {
-    const initialPools = Array.from({ length: pageSize }, (_, i) => ({
+    const cardHeight = 116; 
+    const containerHeight = window.innerHeight - 64; 
+    const calculatedPageSize = Math.floor(containerHeight / cardHeight);
+    
+    const initialPools = Array.from({ length: calculatedPageSize }, (_, i) => ({
       id: i + 1,
       name: `Pool ${i + 1}`,
       token0: 'ETH',
@@ -26,7 +29,7 @@ export default function PoolsPage() {
     }))
     setPools(initialPools)
     setSelectedPool(initialPools[0])
-  }, [pageSize])
+  }, []) 
 
   if (!selectedPool) {
     return null 
