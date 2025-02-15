@@ -45,7 +45,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 480000000,
     createdAt: '2025-02-12 22:42:22',
     expiresAt: '2025-02-15 22:42:22',
-    status: 'open'
+    status: 'completed'
   },
   {
     id: 'swap-11',
@@ -68,7 +68,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 950000000,
     createdAt: '2025-02-12 23:42:22',
     expiresAt: '2025-02-15 23:42:22',
-    status: 'open'
+    status: 'pending'
   },
   {
     id: 'swap-12',
@@ -91,7 +91,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 700000000,
     createdAt: '2025-02-13 00:42:22',
     expiresAt: '2025-02-16 00:42:22',
-    status: 'open'
+    status: 'all'
   },
   {
     id: 'swap-13',
@@ -137,7 +137,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 380000000,
     createdAt: '2025-02-13 02:42:22',
     expiresAt: '2025-02-16 02:42:22',
-    status: 'open'
+    status: 'completed'
   },
   {
     id: 'swap-15',
@@ -160,7 +160,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 580000000,
     createdAt: '2025-02-13 03:42:22',
     expiresAt: '2025-02-16 03:42:22',
-    status: 'open'
+    status: 'pending'
   },
   {
     id: 'swap-16',
@@ -183,7 +183,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 750000000,
     createdAt: '2025-02-13 04:42:22',
     expiresAt: '2025-02-16 04:42:22',
-    status: 'open'
+    status: 'all'
   },
   {
     id: 'swap-17',
@@ -229,7 +229,7 @@ export const mockTickets: Ticket[] = [
     minAmountOut: 430000000,
     createdAt: '2025-02-13 06:42:22',
     expiresAt: '2025-02-16 06:42:22',
-    status: 'open'
+    status: 'completed'
   }
 ]
 
@@ -249,7 +249,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 500000000,
     createdAt: '2025-02-12 21:54:52',
     expiresAt: '2025-02-13 21:54:52',
-    status: 'open'
+    status: 'pending'
   },
   {
     id: 'nfts-6',
@@ -266,7 +266,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 600000000,
     createdAt: '2025-02-12 22:54:52',
     expiresAt: '2025-02-13 22:54:52',
-    status: 'open'
+    status: 'all'
   },
   {
     id: 'nfts-7',
@@ -300,7 +300,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 450000000,
     createdAt: '2025-02-13 00:54:52',
     expiresAt: '2025-02-14 00:54:52',
-    status: 'open'
+    status: 'completed'
   },
   {
     id: 'nfts-9',
@@ -317,7 +317,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 550000000,
     createdAt: '2025-02-13 01:54:52',
     expiresAt: '2025-02-14 01:54:52',
-    status: 'open'
+    status: 'pending'
   },
   {
     id: 'nfts-10',
@@ -334,7 +334,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 800000000,
     createdAt: '2025-02-13 02:54:52',
     expiresAt: '2025-02-14 02:54:52',
-    status: 'open'
+    status: 'all'
   },
   {
     id: 'nfts-11',
@@ -368,7 +368,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 900000000,
     createdAt: '2025-02-13 04:54:52',
     expiresAt: '2025-02-14 04:54:52',
-    status: 'open'
+    status: 'completed'
   },
   {
     id: 'nfts-13',
@@ -385,7 +385,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 750000000,
     createdAt: '2025-02-13 05:54:52',
     expiresAt: '2025-02-14 05:54:52',
-    status: 'open'
+    status: 'pending'
   },
   {
     id: 'nfts-14',
@@ -402,7 +402,7 @@ export const mockNFTTickets: Ticket[] = [
     minAmountOut: 850000000,
     createdAt: '2025-02-13 06:54:52',
     expiresAt: '2025-02-14 06:54:52',
-    status: 'open'
+    status: 'all'
   }
 ]
 

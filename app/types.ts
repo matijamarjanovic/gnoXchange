@@ -17,7 +17,7 @@ export interface Ticket {
   minAmountOut: number
   createdAt: string
   expiresAt: string
-  status: string
+  status: TicketStatus
 }
 
 export interface TokenDetails {
