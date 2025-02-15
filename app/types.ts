@@ -39,3 +39,5 @@ export interface NFTDetails {
   tokenId: string
   uri: string
 }
+
+export type TicketStatus = 'open' | 'completed' | 'pending' | 'all';

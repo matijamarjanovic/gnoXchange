@@ -1,24 +1,47 @@
 'use client'
-import { mockNFTTickets, mockTickets } from "@/app/mock"
-import { SearchBar } from '@/components/search-bar'
-import { Card } from "@/components/ui/card"
+import { mockNFTTickets, mockTickets } from "@/app/mock";
+import { TicketStatus } from '@/app/types';
+import { SearchBar } from '@/components/search-bar';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Filter } from 'lucide-react';
+import { useState } from 'react';
 
 export default function TicketHistory() {
+  const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
+
+  const toggleFilterStatus = () => {
+    const statuses: TicketStatus[] = ['all', 'open', 'completed', 'pending'];
+    const currentIndex = statuses.indexOf(filterStatus);
+    const nextIndex = (currentIndex + 1) % statuses.length;
+    setFilterStatus(statuses[nextIndex]);
+  };
+
   const sortedTickets = [...mockTickets, ...mockNFTTickets].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
 
+  const filteredTickets = sortedTickets.filter(ticket => 
+    filterStatus === 'all' || ticket.status === filterStatus
+  );
+
   return (
     <div className="container mx-auto p-6 flex flex-col gap-4 overflow-hidden">
-      <SearchBar 
-        containerClassName="w-full"
-        placeholder="Search history..."
-        onChange={(value) => {
-          console.log(value)
-        }}
-      />
+      <div className="flex items-center justify-between">
+        <SearchBar 
+          containerClassName="w-full"
+          placeholder="Search history..."
+          onChange={(value) => {
+            console.log(value)
+          }}
+        />
+        <Button onClick={toggleFilterStatus} variant="ghost" className="ml-4 flex items-center bg-gray-800 text-gray-400 h-9 hover:bg-gray-900 hover:text-gray-300">
+          <Filter className="text-gray-400" />
+          <span className="ml-2 text-sm">{filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}</span>
+        </Button>
+      </div>
       <div className="grid gap-1 overflow-auto scrollbar-thin">
-        {sortedTickets.map((ticket) => (
+        {filteredTickets.map((ticket) => (
           <Card 
             key={ticket.id} 
             className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg"
