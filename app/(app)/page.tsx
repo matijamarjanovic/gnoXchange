@@ -8,6 +8,18 @@ import {
 import { Package, Ticket, Wallet } from "lucide-react";
 import Link from "next/link";
 
+const generateRandomStyles = (count: number) => {
+  return Array.from({ length: count }, () => ({
+    transform: `rotate(${Math.random() * 360}deg)`,
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+  }));
+};
+
+const walletStyles = generateRandomStyles(32);
+const ticketStyles = generateRandomStyles(32);
+const packageStyles = generateRandomStyles(32);
+
 export default function Home() {
   return (
     <div className="flex items-start pt-16 h-full bg-transparent relative">
@@ -27,16 +39,12 @@ export default function Home() {
           <Card className="hover:bg-gray-900 transition-colors cursor-pointer w-[75vw] bg-gray-800 text-gray-400 border-none relative overflow-hidden shadow-lg">
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0">
-                {[...Array(32)].map((_, i) => (
+                {walletStyles.map((style, i) => (
                   <Wallet
                     key={i}
                     size={24}
                     className="opacity-50 absolute"
-                    style={{
-                      transform: `rotate(${Math.random() * 360}deg)`,
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                    }}
+                    style={style}
                   />
                 ))}
               </div>
@@ -54,16 +62,12 @@ export default function Home() {
           <Card className="hover:bg-gray-900 transition-colors cursor-pointer w-[75vw] bg-gray-800 text-gray-400 border-none relative overflow-hidden shadow-lg">
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0">
-                {[...Array(32)].map((_, i) => (
+                {ticketStyles.map((style, i) => (
                   <Ticket
                     key={i}
                     size={24}
                     className="opacity-50 absolute"
-                    style={{
-                      transform: `rotate(${Math.random() * 360}deg)`,
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                    }}
+                    style={style}
                   />
                 ))}
               </div>
@@ -81,16 +85,12 @@ export default function Home() {
           <Card className="hover:bg-gray-900 transition-colors cursor-pointer w-[75vw] bg-gray-800 text-gray-400 border-none relative overflow-hidden shadow-lg">
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0">
-                {[...Array(32)].map((_, i) => (
+                {packageStyles.map((style, i) => (
                   <Package
                     key={i}
                     size={24}
                     className="opacity-50 absolute"
-                    style={{
-                      transform: `rotate(${Math.random() * 360}deg)`,
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                    }}
+                    style={style}
                   />
                 ))}
               </div>
