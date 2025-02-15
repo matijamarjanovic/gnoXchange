@@ -1,12 +1,12 @@
 'use client'
 
-import { mockTickets } from '@/app/mock'
-import { Ticket } from '@/app/types'
+import { mockCoinDetails, mockTickets, mockTokenDetails } from '@/app/mock'
+import { Asset, Ticket } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useEffect, useState } from 'react'
 
 interface CreateTicketForm {
@@ -28,8 +28,9 @@ export default function TicketsPage() {
     minAmountOut: '',
     expiryHours: ''
   })
+  const [assetInType, setAssetInType] = useState<Asset | null>(null)
+  const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
 
-  // todo: instead of using tab view use 2 dropdowns and then depending on the dropdowns, show the form for that ticket type   
   useEffect(() => {
     const cardHeight = 116
     const cardGap = 16
@@ -62,6 +63,11 @@ export default function TicketsPage() {
 
   const renderRightCard = () => {
     if (isCreatingTicket) {
+      const assets = [
+        ...mockCoinDetails.map(coin => ({ type: 'coin', denom: coin.denom, name: coin.name })),
+        ...mockTokenDetails.map(token => ({ type: 'token', key: token.key, name: token.name, symbol: token.symbol })),
+      ]
+
       return (
         <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
           <div className="flex justify-between items-center mb-4">
@@ -74,183 +80,88 @@ export default function TicketsPage() {
               Cancel
             </Button>
           </div>
-          <Tabs defaultValue="coin-token" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-900">
-              <TabsTrigger 
-                value="coin-token" 
-                className="data-[state=active]:bg-gray-800 data-[state=active]:text-gray-200 text-gray-400"
-              >
-                Coin → Token
-              </TabsTrigger>
-              <TabsTrigger 
-                value="token-coin"
-                className="data-[state=active]:bg-gray-800 data-[state=active]:text-gray-200 text-gray-400"
-              >
-                Token → Coin
-              </TabsTrigger>
-              <TabsTrigger 
-                value="token-token"
-                className="data-[state=active]:bg-gray-800 data-[state=active]:text-gray-200 text-gray-400"
-              >
-                Token → Token
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="coin-token">
-              <form onSubmit={handleCreateTicket} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm">Coin Denom</label>
-                  <Input
-                    placeholder="e.g. ugnot"
-                    value={createTicketForm.tokenInKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenInKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Token Key</label>
-                  <Input
-                    placeholder="e.g. gno.land/r/test.gtoken"
-                    value={createTicketForm.tokenOutKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenOutKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Minimum Amount Out</label>
-                  <Input
-                    type="number"
-                    placeholder="Minimum amount of tokens to receive"
-                    value={createTicketForm.minAmountOut}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Expiry Hours</label>
-                  <Input
-                    type="number"
-                    placeholder="Number of hours until expiry"
-                    value={createTicketForm.expiryHours}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, expiryHours: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-                  Create Ticket
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="token-coin">
-              <form onSubmit={handleCreateTicket} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm">Token Key</label>
-                  <Input
-                    placeholder="e.g. gno.land/r/test.gtoken"
-                    value={createTicketForm.tokenInKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenInKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Coin Denom</label>
-                  <Input
-                    placeholder="e.g. ugnot"
-                    value={createTicketForm.tokenOutKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenOutKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Amount In</label>
-                  <Input
-                    type="number"
-                    placeholder="Amount of tokens to swap"
-                    value={createTicketForm.amountIn}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, amountIn: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Minimum Amount Out</label>
-                  <Input
-                    type="number"
-                    placeholder="Minimum amount of coins to receive"
-                    value={createTicketForm.minAmountOut}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Expiry Hours</label>
-                  <Input
-                    type="number"
-                    placeholder="Number of hours until expiry"
-                    value={createTicketForm.expiryHours}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, expiryHours: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-                  Create Ticket
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="token-token">
-              <form onSubmit={handleCreateTicket} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm">Token In Key</label>
-                  <Input
-                    placeholder="e.g. gno.land/r/test1.gtokenA"
-                    value={createTicketForm.tokenInKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenInKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Token Out Key</label>
-                  <Input
-                    placeholder="e.g. gno.land/r/test2.gtokenB"
-                    value={createTicketForm.tokenOutKey}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, tokenOutKey: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Amount In</label>
-                  <Input
-                    type="number"
-                    placeholder="Amount of tokens to swap"
-                    value={createTicketForm.amountIn}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, amountIn: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Minimum Amount Out</label>
-                  <Input
-                    type="number"
-                    placeholder="Minimum amount of tokens to receive"
-                    value={createTicketForm.minAmountOut}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Expiry Hours</label>
-                  <Input
-                    type="number"
-                    placeholder="Number of hours until expiry"
-                    value={createTicketForm.expiryHours}
-                    onChange={(e) => setCreateTicketForm(prev => ({...prev, expiryHours: e.target.value}))}
-                    className="bg-gray-900 border-gray-700"
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-                  Create Ticket
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleCreateTicket} className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-gray-900 text-gray-400 w-64">
+                    {assetInType ? assetInType.name : 'Select Asset In'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  className="bg-gray-900 text-gray-400 border-none"
+                  style={{
+                    width: '16rem',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  {assets.map((asset, index) => (
+                    <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetInType(asset)}>
+                      {asset.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <span className="text-gray-400">→</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-gray-900 text-gray-400 w-64">
+                    {assetOutType ? assetOutType.name : 'Select Asset Out'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  className="bg-gray-900 text-gray-400 border-none"
+                  style={{
+                    width: '16rem',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  {assets.map((asset, index) => (
+                    <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetOutType(asset)}>
+                      {asset.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm">Amount In</label>
+              <Input
+                type="number"
+                placeholder="Amount of asset to swap"
+                value={createTicketForm.amountIn}
+                onChange={(e) => setCreateTicketForm(prev => ({...prev, amountIn: e.target.value}))}
+                className="bg-gray-900 border-gray-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm">Minimum Amount Out</label>
+              <Input
+                type="number"
+                placeholder="Minimum amount to receive"
+                value={createTicketForm.minAmountOut}
+                onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
+                className="bg-gray-900 border-gray-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm">Expiry Hours</label>
+              <Input
+                type="number"
+                placeholder="Number of hours until expiry"
+                value={createTicketForm.expiryHours}
+                onChange={(e) => setCreateTicketForm(prev => ({...prev, expiryHours: e.target.value}))}
+                className="bg-gray-900 border-gray-700"
+              />
+            </div>
+            <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
+              Create Ticket
+            </Button>
+          </form>
         </Card>
       )
     }

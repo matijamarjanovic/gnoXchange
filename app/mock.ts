@@ -1,4 +1,4 @@
-import { Ticket } from './types'
+import { CoinDetails, Ticket, TokenDetails } from './types'
 
 export const mockTickets: Ticket[] = [
   {
@@ -404,4 +404,57 @@ export const mockNFTTickets: Ticket[] = [
     expiresAt: '2025-02-14 06:54:52',
     status: 'open'
   }
+]
+
+export const mockTokenDetails: TokenDetails[] = [
+  {
+    key: 'gno.land/r/test.gtoken',
+    name: 'Test Token',
+    symbol: 'TT',
+    decimals: 6
+  },
+  {
+    key: 'gno.land/r/test2.gtokenB',
+    name: 'Test Token B',
+    symbol: 'TTB',
+    decimals: 8
+  },
+  {
+    key: 'gno.land/r/test3.gtokenC',
+    name: 'Test Token C',
+    symbol: 'TTC',
+    decimals: 4
+  },
+  {
+    key: 'gno.land/r/test4.gtokenD',
+    name: 'Test Token D',
+    symbol: 'TTD',
+    decimals: 18
+  },
+  {
+    key: 'gno.land/r/test5.gtokenE',
+    name: 'Test Token E',
+    symbol: 'TTE',
+    decimals: 2
+  },
+  {
+    key: 'gno.land/r/test6.gtokenF',
+    name: 'Test Token F',
+    symbol: 'TTF',
+    decimals: 10
+  },
+  {
+    key: 'gno.land/r/test7.gtokenG',
+    name: 'Test Token G',
+    symbol: 'TTG',
+    decimals: 12
+  }
 ] 
+
+export const mockCoinDetails: CoinDetails[] = [
+  {
+    denom: 'ugnot',
+    name: 'GNOT',
+    decimals: 6
+  }
+]

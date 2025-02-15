@@ -18,4 +18,17 @@ export interface Ticket {
   createdAt: string
   expiresAt: string
   status: string
+}
+
+export interface TokenDetails {
+  key: string
+  name: string
+  symbol: string
+  decimals: number
 } 
+
+export interface CoinDetails {
+  denom: string
+  name: string
+  decimals: 6
+}
