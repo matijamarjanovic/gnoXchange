@@ -32,3 +32,10 @@ export interface CoinDetails {
   name: string
   decimals: 6
 }
+
+export interface NFTDetails {
+  key: string
+  collection: string
+  tokenId: string
+  uri: string
+}

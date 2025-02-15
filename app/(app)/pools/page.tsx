@@ -176,7 +176,7 @@ export default function PoolsPage() {
     <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none">
       <div className="flex justify-between items-center">
         <SearchBar 
-          containerClassName="w-2/3"
+          containerClassName="flex-grow mr-4"
           placeholder="Search pools..."
           onChange={(value) => {
             console.log(value)
@@ -184,7 +184,7 @@ export default function PoolsPage() {
         />
         <Button 
           onClick={() => setIsCreatingPool(true)}
-          className="bg-primary hover:bg-gray-900"
+          className="bg-primary hover:bg-gray-900 h-9"
         >
           Create Pool
         </Button>

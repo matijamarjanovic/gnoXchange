@@ -1,4 +1,4 @@
-import { CoinDetails, Ticket, TokenDetails } from './types'
+import { CoinDetails, NFTDetails, Ticket, TokenDetails } from './types'
 
 export const mockTickets: Ticket[] = [
   {
@@ -456,5 +456,26 @@ export const mockCoinDetails: CoinDetails[] = [
     denom: 'ugnot',
     name: 'GNOT',
     decimals: 6
+  }
+]
+
+export const mockNFTDetails: NFTDetails[] = [
+  {
+    key: 'gno.land/r/test.nft.mycollection.1',
+    collection: 'My Collection',
+    tokenId: 'NFT1',
+    uri: 'gno.land/r/test.nft.mycollection.1'
+  },
+  {
+    key: 'gno.land/r/test.nft.mycollection.2',
+    collection: 'My Collection',
+    tokenId: 'NFT2',
+    uri: 'gno.land/r/test.nft.mycollection.2'
+  },
+  {
+    key: 'gno.land/r/test.nft.mycollection.3',
+    collection: 'My Collection',
+    tokenId: 'NFT3',
+    uri: 'gno.land/r/test.nft.mycollection.3'
   }
 ]
