@@ -69,7 +69,7 @@ export default function PoolsPage() {
     const totalPages = Math.ceil(totalPools / pageSize)
     
     return (
-      <div className="flex justify-center items-center gap-2 mt-4">
+      <div className="flex justify-center items-center gap-2 mt-8">
         <Button
           variant="ghost"
           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
