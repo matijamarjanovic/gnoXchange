@@ -53,7 +53,7 @@ export default function TicketHistory() {
           {filteredTickets.map((ticket) => (
             <Card 
               key={ticket.id} 
-              className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-700"
+              className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
               onClick={() => handleTicketClick(ticket)}
             >
               <div className="flex justify-between items-center text-xs">
