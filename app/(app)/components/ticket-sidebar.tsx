@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-
     Sheet,
     SheetContent,
     SheetDescription,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { ArrowRight, X } from "lucide-react"
+import { ArrowDown, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import { useTicketSidebar } from "../contexts/TicketSidebarContext"
 
@@ -25,9 +24,9 @@ export function TicketSidebar() {
     setSwapAmount("")
   }
 
-  const handleSwap = () => {
-    // todo : implement swap logic here
-    console.log("Swapping:", swapAmount)
+  const handleFulfillTicket = () => {
+    // todo : implement fulfill ticket logic here
+    console.log("Fulfilling ticket with payment:", swapAmount)
     handleClose()
   }
 
@@ -37,17 +36,7 @@ export function TicketSidebar() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent className="w-[400px] bg-gray-800 text-gray-300 border-gray-700">
         <SheetHeader>
-          <div className="flex justify-between items-center">
-            <SheetTitle className="text-gray-200">Ticket Details</SheetTitle>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleClose}
-              className="h-8 w-8 hover:bg-gray-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <SheetTitle className="text-gray-200">Ticket Details</SheetTitle>
           <SheetDescription className="text-gray-400">
             ID: {selectedTicket.id}
           </SheetDescription>
@@ -55,22 +44,27 @@ export function TicketSidebar() {
 
         <div className="mt-6 space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="space-y-1 min-w-0 flex-1">
                 <Label className="text-gray-400">From</Label>
-                <div className="text-sm">
+                <div className="text-sm truncate">
                   {selectedTicket.assetIn.type === 'nft' 
                     ? selectedTicket.assetIn.tokenHubPath
+                    : selectedTicket.assetIn.type === 'coin'
+                    ? selectedTicket.assetIn.denom
                     : selectedTicket.assetIn.symbol
                   }
                 </div>
               </div>
-              <ArrowRight className="text-gray-500" />
-              <div className="space-y-1 text-right">
+              <ArrowRight className="hidden sm:block text-gray-500 shrink-0" />
+              <ArrowDown className="block sm:hidden text-gray-500 shrink-0" />
+              <div className="space-y-1 min-w-0 flex-1">
                 <Label className="text-gray-400">To</Label>
-                <div className="text-sm">
+                <div className="text-sm truncate">
                   {selectedTicket.assetOut.type === 'nft'
                     ? selectedTicket.assetOut.tokenHubPath
+                    : selectedTicket.assetOut.type === 'coin'
+                    ? selectedTicket.assetOut.denom
                     : selectedTicket.assetOut.symbol
                   }
                 </div>
@@ -89,13 +83,13 @@ export function TicketSidebar() {
 
             {selectedTicket.status === 'open' && (
               <div className="space-y-2">
-                <Label className="text-gray-400">Swap Amount</Label>
+                <Label className="text-gray-400">Payment Amount</Label>
                 <Input
                   type="number"
                   value={swapAmount}
                   onChange={(e) => setSwapAmount(e.target.value)}
                   className="bg-gray-700 border-gray-600 text-gray-200"
-                  placeholder="Enter amount to swap"
+                  placeholder="Enter amount to pay"
                 />
               </div>
             )}
@@ -126,11 +120,11 @@ export function TicketSidebar() {
 
           {selectedTicket.status === 'open' && (
             <Button 
-              onClick={handleSwap}
+              onClick={handleFulfillTicket}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={!swapAmount || Number(swapAmount) <= 0}
             >
-              Swap
+              Fulfill Ticket
             </Button>
           )}
         </div>
