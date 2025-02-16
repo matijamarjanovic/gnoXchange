@@ -18,9 +18,13 @@ interface CreateTicketForm {
 }
 
 export default function TicketsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [tickets, setTickets] =     useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isCreatingTicket, setIsCreatingTicket] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(0)
+  const [totalTickets] = useState(mockTickets.length)
   const [createTicketForm, setCreateTicketForm] = useState<CreateTicketForm>({
     tokenInKey: '',
     tokenOutKey: '',
@@ -32,17 +36,67 @@ export default function TicketsPage() {
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
 
   useEffect(() => {
-    const cardHeight = 116
-    const cardGap = 16
-    const containerPadding = 48
-    const searchBarHeight = 80
-    const containerHeight = window.innerHeight - containerPadding - searchBarHeight
-    const calculatedPageSize = Math.floor(containerHeight / (cardHeight + cardGap))
+    const calculatePageSize = () => {
+      const cardHeight = 130 
+      const searchBarHeight = 40
+      const paginationHeight = 40
+      const containerHeight = window.innerHeight - 64 
+      return Math.floor((containerHeight - searchBarHeight - paginationHeight) / cardHeight)
+    }
+
+    const initializeTickets = () => {
+      const calculatedPageSize = calculatePageSize()
+      setPageSize(calculatedPageSize)
+      
+      const start = (currentPage - 1) * calculatedPageSize
+      const end = start + calculatedPageSize
+      const paginatedTickets = mockTickets.slice(start, end)
+      
+      setTickets(paginatedTickets)
+      setSelectedTicket(paginatedTickets[0])
+      setIsLoading(false)
+    }
+
+    initializeTickets()
+
+    const handleResize = () => {
+      const newPageSize = calculatePageSize()
+      if (newPageSize !== pageSize) {
+        setPageSize(newPageSize)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [currentPage, pageSize])
+
+  const PaginationControls = () => {
+    const totalPages = Math.ceil(totalTickets / pageSize)
     
-    const visibleTickets = mockTickets.slice(0, calculatedPageSize)
-    setTickets(visibleTickets)
-    setSelectedTicket(visibleTickets[0])
-  }, [])
+    return (
+      <div className="flex justify-center items-center gap-2 mt-4">
+        <Button
+          variant="ghost"
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="bg-gray-800 hover:bg-gray-700"
+        >
+          Previous
+        </Button>
+        <span className="text-gray-400">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          variant="ghost"
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="bg-gray-800 hover:bg-gray-700"
+        >
+          Next
+        </Button>
+      </div>
+    )
+  }
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -216,11 +270,15 @@ export default function TicketsPage() {
     return (amount / Math.pow(10, decimals)).toFixed(decimals)
   }
 
+  if (isLoading) {
+    return null
+  }
+
   return (
-    <div className="container mx-auto p-4 flex flex-col gap-4">
+    <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none">
       <div className="flex justify-between items-center">
         <SearchBar 
-          containerClassName="w-2/3"
+          containerClassName="flex-grow mr-4"
           placeholder="Search tickets..."
           onChange={(value) => {
             console.log(value)
@@ -228,7 +286,7 @@ export default function TicketsPage() {
         />
         <Button 
           onClick={() => setIsCreatingTicket(true)}
-          className="bg-primary hover:bg-gray-900"
+          className="bg-primary hover:bg-gray-900 h-9"
         >
           Create Ticket
         </Button>
@@ -239,9 +297,12 @@ export default function TicketsPage() {
             <Card
               key={ticket.id}
               className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
-                selectedTicket?.id === ticket.id ? 'ring-2 ring-primary' : ''
+                selectedTicket?.id === ticket.id && !isCreatingTicket ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setSelectedTicket(ticket)}
+              onClick={() => {
+                setSelectedTicket(ticket)
+                setIsCreatingTicket(false)
+              }}
             >
               <h3 className="font-bold text-lg">Ticket {ticket.id}</h3>
               <div className="text-sm text-gray-400">
@@ -251,6 +312,7 @@ export default function TicketsPage() {
               </div>
             </Card>
           ))}
+          <PaginationControls />
         </div>
         <div className="w-2/3">
           {renderRightCard()}
