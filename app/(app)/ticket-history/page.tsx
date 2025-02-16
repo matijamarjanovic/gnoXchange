@@ -10,12 +10,23 @@ import { useEffect, useState } from 'react';
 import { TicketSidebar } from "../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
 
+const PAGE_SIZE_KEY = 'ticketHistory.pageSize'
+
 export default function TicketHistory() {
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const [pageSize, setPageSize] = useState(() => {
+    const storedSize = localStorage.getItem(PAGE_SIZE_KEY)
+    return storedSize ? parseInt(storedSize) : 25
+  })
   const [isLoading, setIsLoading] = useState(true)
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const [isScrolledToTop, setIsScrolledToTop] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem(PAGE_SIZE_KEY, pageSize.toString())
+  }, [pageSize])
 
   const toggleFilterStatus = () => {
     const statuses: TicketStatus[] = ['all', 'open', 'completed', 'pending'];
@@ -92,6 +103,13 @@ export default function TicketHistory() {
     </div>
   )
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const bottom = Math.abs(e.currentTarget.scrollHeight - e.currentTarget.scrollTop - e.currentTarget.clientHeight) < 1;
+    const top = e.currentTarget.scrollTop === 0;
+    setIsScrolledToBottom(bottom);
+    setIsScrolledToTop(top);
+  };
+
   if (isLoading) return null
 
   return (
@@ -119,45 +137,66 @@ export default function TicketHistory() {
             <PaginationControls />
           </div>
         </div>
-        <div className="grid gap-1">
-          {currentTickets.map((ticket) => (
-            <Card 
-              key={ticket.id} 
-              className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
-              onClick={() => handleTicketClick(ticket)}
-            >
-              <div className="flex justify-between items-center text-xs">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-500 w-16">{ticket.id}</span>
-                  <span>
-                    {ticket.assetIn.type === 'nft' 
-                      ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ''}`
-                      : `${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`
-                    }
-                  </span>
+        <div className="relative">
+          <div 
+            className="grid gap-1 max-h-[calc(81vh)] overflow-y-auto"
+            onScroll={handleScroll}
+            style={{
+              maskImage: `linear-gradient(
+                to bottom,
+                transparent 0%,
+                black ${isScrolledToTop ? '0%' : '0.5rem'},
+                black calc(100% - ${isScrolledToBottom ? '0rem' : '0.5rem'}),
+                transparent 100%
+              )`,
+              WebkitMaskImage: `linear-gradient(
+                to bottom,
+                transparent 0%,
+                black ${isScrolledToTop ? '0%' : '0.5rem'},
+                black calc(100% - ${isScrolledToBottom ? '0rem' : '0.5rem'}),
+                transparent 100%
+              )`
+            }}
+          >
+            {currentTickets.map((ticket) => (
+              <Card 
+                key={ticket.id} 
+                className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
+                onClick={() => handleTicketClick(ticket)}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500 w-16">{ticket.id}</span>
+                    <span>
+                      {ticket.assetIn.type === 'nft' 
+                        ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ''}`
+                        : `${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-0.5 rounded-full ${
+                      ticket.status === 'completed' 
+                        ? 'bg-green-900/50 text-green-400'
+                        : ticket.status === 'pending'
+                        ? 'bg-yellow-900/50 text-yellow-400'
+                        : 'bg-red-900/50 text-red-400'
+                    }`}>
+                      {ticket.status}
+                    </span>
+                    <span className="text-gray-500">
+                      {new Date(ticket.createdAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                      })}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded-full ${
-                    ticket.status === 'completed' 
-                      ? 'bg-green-900/50 text-green-400'
-                      : ticket.status === 'pending'
-                      ? 'bg-yellow-900/50 text-yellow-400'
-                      : 'bg-red-900/50 text-red-400'
-                  }`}>
-                    {ticket.status}
-                  </span>
-                  <span className="text-gray-500">
-                    {new Date(ticket.createdAt).toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false
-                    })}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
       <TicketSidebar />
