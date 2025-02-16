@@ -4,14 +4,18 @@ import { Ticket, TicketStatus } from '@/app/types';
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Filter } from 'lucide-react';
-import { useState } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronDown, Filter } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { TicketSidebar } from "../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
 
 export default function TicketHistory() {
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [isLoading, setIsLoading] = useState(true)
 
   const toggleFilterStatus = () => {
     const statuses: TicketStatus[] = ['all', 'open', 'completed', 'pending'];
@@ -28,29 +32,95 @@ export default function TicketHistory() {
     filterStatus === 'all' || ticket.status === filterStatus
   );
 
+  const totalTickets = filteredTickets.length
+  const totalPages = Math.ceil(totalTickets / pageSize)
+  const start = (currentPage - 1) * pageSize
+  const end = start + pageSize
+  const currentTickets = filteredTickets.slice(start, end)
+
   const handleTicketClick = (ticket: Ticket) => {
     setSelectedTicket(ticket)
     setIsOpen(true)
   }
 
+  useEffect(() => {
+    setCurrentPage(1)
+    setIsLoading(false)
+  }, [pageSize, filterStatus])
+
+  const pageSizeOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 5)
+
+  const PaginationControls = () => (
+    <div className="flex items-center gap-3">
+      <Button
+        variant="ghost"
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className="bg-gray-800 hover:bg-gray-700 h-9"
+      >
+        Previous
+      </Button>
+      <span className="text-gray-400 text-sm">
+        Page {currentPage} of {totalPages}
+      </span>
+      <Button
+        variant="ghost"
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        className="bg-gray-800 hover:bg-gray-700 h-9"
+      >
+        Next
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="bg-gray-800 hover:bg-gray-700 h-9">
+            {pageSize} per page <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-gray-900 border-gray-800">
+          {pageSizeOptions.map((size) => (
+            <DropdownMenuItem
+              key={size}
+              onClick={() => setPageSize(size)}
+              className="text-gray-400 hover:bg-gray-800"
+            >
+              {size} tickets
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+
+  if (isLoading) return null
+
   return (
     <>
-      <div className="container mx-auto p-6 flex flex-col gap-4 overflow-hidden">
+      <div className="container mx-auto p-6 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <SearchBar 
-            containerClassName="w-full"
-            placeholder="Search history..."
-            onChange={(value) => {
-              console.log(value)
-            }}
-          />
-          <Button onClick={toggleFilterStatus} variant="ghost" className="ml-4 flex items-center bg-gray-800 text-gray-400 h-9 hover:bg-gray-900 hover:text-gray-300">
-            <Filter className="text-gray-400" />
-            <span className="ml-2 text-sm">{filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}</span>
-          </Button>
+          <div className="flex items-center gap-3 flex-1">
+            <SearchBar 
+              containerClassName="flex-1"
+              placeholder="Search history..."
+              onChange={(value) => {
+                console.log(value)
+              }}
+            />
+            <Button 
+              onClick={toggleFilterStatus} 
+              variant="ghost" 
+              className="flex items-center bg-gray-800 text-gray-400 h-9 hover:bg-gray-900 hover:text-gray-300"
+            >
+              <Filter className="text-gray-400" />
+              <span className="ml-2 text-sm">
+                {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+              </span>
+            </Button>
+            <PaginationControls />
+          </div>
         </div>
-        <div className="grid gap-1 overflow-auto scrollbar-thin">
-          {filteredTickets.map((ticket) => (
+        <div className="grid gap-1">
+          {currentTickets.map((ticket) => (
             <Card 
               key={ticket.id} 
               className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
