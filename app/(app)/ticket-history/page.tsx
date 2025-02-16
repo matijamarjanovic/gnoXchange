@@ -56,7 +56,7 @@ export default function TicketHistory() {
         variant="ghost"
         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
         disabled={currentPage === 1}
-        className="bg-gray-800 hover:bg-gray-700 h-9"
+        className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9"
       >
         Previous
       </Button>
@@ -67,13 +67,13 @@ export default function TicketHistory() {
         variant="ghost"
         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="bg-gray-800 hover:bg-gray-700 h-9"
+        className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9"
       >
         Next
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="bg-gray-800 hover:bg-gray-700 h-9">
+          <Button variant="ghost" className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9">
             {pageSize} per page <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
