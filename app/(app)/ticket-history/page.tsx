@@ -77,12 +77,12 @@ export default function TicketHistory() {
             {pageSize} per page <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-gray-900 border-gray-800">
+        <DropdownMenuContent className="bg-gray-800 border-none">
           {pageSizeOptions.map((size) => (
             <DropdownMenuItem
               key={size}
               onClick={() => setPageSize(size)}
-              className="text-gray-400 hover:bg-gray-800"
+              className="text-gray-400 hover:text-gray-700"
             >
               {size} tickets
             </DropdownMenuItem>
