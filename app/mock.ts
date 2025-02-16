@@ -1,4 +1,4 @@
-import { CoinDetails, NFTDetails, Ticket, TokenDetails } from './types'
+import { CoinDetails, NFTDetails, PoolInfo, Ticket, TokenDetails } from './types'
 
 export const mockTickets: Ticket[] = [
   {
@@ -477,5 +477,188 @@ export const mockNFTDetails: NFTDetails[] = [
     collection: 'My Collection',
     tokenId: 'NFT3',
     uri: 'gno.land/r/test.nft.mycollection.3'
+  }
+]
+
+export const mockPools: PoolInfo[] = [
+  {
+    poolKey: "pool_toka_tokb",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_a",
+      name: "Token A",
+      symbol: "TOKA",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_b",
+      name: "Token B",
+      symbol: "TOKB",
+      decimals: 6
+    },
+    reserveA: 1000000000,  // 1000 TOKA
+    reserveB: 2000000000,  // 2000 TOKB
+    totalSupplyLP: 1414213562 // sqrt(1000 * 2000) * 1000000
+  },
+  {
+    poolKey: "pool_tokb_tokc",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_b",
+      name: "Token B",
+      symbol: "TOKB",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_c",
+      name: "Token C",
+      symbol: "TOKC",
+      decimals: 6
+    },
+    reserveA: 5000000000,  // 5000 TOKB
+    reserveB: 10000000000, // 10000 TOKC
+    totalSupplyLP: 7071067810
+  },
+  {
+    poolKey: "pool_tokc_tokd",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_c",
+      name: "Token C",
+      symbol: "TOKC",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_d",
+      name: "Token D",
+      symbol: "TOKD",
+      decimals: 6
+    },
+    reserveA: 3000000000,  // 3000 TOKC
+    reserveB: 1500000000,  // 1500 TOKD
+    totalSupplyLP: 2121320344
+  },
+  {
+    poolKey: "pool_tokd_toke",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_d",
+      name: "Token D",
+      symbol: "TOKD",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_e",
+      name: "Token E",
+      symbol: "TOKE",
+      decimals: 6
+    },
+    reserveA: 8000000000,  // 8000 TOKD
+    reserveB: 4000000000,  // 4000 TOKE
+    totalSupplyLP: 5656854249
+  },
+  {
+    poolKey: "pool_toke_tokf",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_e",
+      name: "Token E",
+      symbol: "TOKE",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_f",
+      name: "Token F",
+      symbol: "TOKF",
+      decimals: 6
+    },
+    reserveA: 6000000000,  // 6000 TOKE
+    reserveB: 3000000000,  // 3000 TOKF
+    totalSupplyLP: 4242640687
+  },
+  {
+    poolKey: "pool_toka_tokc",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_a",
+      name: "Token A",
+      symbol: "TOKA",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_c",
+      name: "Token C",
+      symbol: "TOKC",
+      decimals: 6
+    },
+    reserveA: 4000000000,  // 4000 TOKA
+    reserveB: 8000000000,  // 8000 TOKC
+    totalSupplyLP: 5656854249
+  },
+  {
+    poolKey: "pool_tokb_tokd",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_b",
+      name: "Token B",
+      symbol: "TOKB",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_d",
+      name: "Token D",
+      symbol: "TOKD",
+      decimals: 6
+    },
+    reserveA: 7000000000,  // 7000 TOKB
+    reserveB: 3500000000,  // 3500 TOKD
+    totalSupplyLP: 4949747468
+  },
+  {
+    poolKey: "pool_tokc_toke",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_c",
+      name: "Token C",
+      symbol: "TOKC",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_e",
+      name: "Token E",
+      symbol: "TOKE",
+      decimals: 6
+    },
+    reserveA: 9000000000,  // 9000 TOKC
+    reserveB: 4500000000,  // 4500 TOKE
+    totalSupplyLP: 6363961031
+  },
+  {
+    poolKey: "pool_tokd_tokf",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_d",
+      name: "Token D",
+      symbol: "TOKD",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_f",
+      name: "Token F",
+      symbol: "TOKF",
+      decimals: 6
+    },
+    reserveA: 5500000000,  // 5500 TOKD
+    reserveB: 2750000000,  // 2750 TOKF
+    totalSupplyLP: 3889087296
+  },
+  {
+    poolKey: "pool_toka_tokf",
+    tokenAInfo: {
+      key: "gno.land/r/demo/token_a",
+      name: "Token A",
+      symbol: "TOKA",
+      decimals: 6
+    },
+    tokenBInfo: {
+      key: "gno.land/r/demo/token_f",
+      name: "Token F",
+      symbol: "TOKF",
+      decimals: 6
+    },
+    reserveA: 3300000000,  // 3300 TOKA
+    reserveB: 6600000000,  // 6600 TOKF
+    totalSupplyLP: 4666904755
   }
 ]

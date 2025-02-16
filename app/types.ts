@@ -41,3 +41,12 @@ export interface NFTDetails {
 }
 
 export type TicketStatus = 'open' | 'completed' | 'pending' | 'all';
+
+export interface PoolInfo {
+  poolKey: string
+  tokenAInfo: TokenDetails
+  tokenBInfo: TokenDetails
+  reserveA: number
+  reserveB: number
+  totalSupplyLP: number
+}
