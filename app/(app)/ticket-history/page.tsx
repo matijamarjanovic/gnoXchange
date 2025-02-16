@@ -14,7 +14,7 @@ export default function TicketHistory() {
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(25)
   const [isLoading, setIsLoading] = useState(true)
 
   const toggleFilterStatus = () => {
