@@ -190,7 +190,7 @@ function parseAssetInfo(assetStr: string): Asset {
   }, {})
 
   return {
-    type: parts.Type.toLowerCase(), // Convert to lowercase to match our type
+    type: parts.Type.toLowerCase(), 
     denom: parts.Denom,
     path: parts.Path,
     name: parts.Name,

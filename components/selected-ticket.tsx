@@ -14,8 +14,8 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
 
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
-      <h2 className="text-lg font-bold mb-4">
-        P2P Trade <span className="text-2xl ml-2">
+      <h2 className="text-lg mb-4">
+        P2P Trade <span className="text-2xl ml-2 font-bold">
           {ticket.assetIn.symbol || ticket.assetIn.denom} → {ticket.assetOut.symbol || ticket.assetOut.denom}
         </span>
       </h2>
