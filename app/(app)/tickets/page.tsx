@@ -1,12 +1,12 @@
 'use client'
 
 import { mockCoinDetails, mockTickets, mockTokenDetails } from '@/app/mock'
-import { Asset, Ticket } from '@/app/types'
+import { Ticket } from '@/app/types'
+import { CreateTicket } from '@/components/create-ticket'
 import { SearchBar } from '@/components/search-bar'
+import { SelectedTicket } from '@/components/selected-ticket'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from '@/components/ui/input'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../components/pagination-controls'
 
@@ -26,15 +26,6 @@ export default function TicketsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
   const [totalTickets] = useState(mockTickets.length)
-  const [createTicketForm, setCreateTicketForm] = useState<CreateTicketForm>({
-    tokenInKey: '',
-    tokenOutKey: '',
-    amountIn: '',
-    minAmountOut: '',
-    expiryHours: ''
-  })
-  const [assetInType, setAssetInType] = useState<Asset | null>(null)
-  const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -71,17 +62,9 @@ export default function TicketsPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [currentPage, pageSize])
 
-  const handleCreateTicket = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreateTicket = async (form: CreateTicketForm) => {
     try {
-      console.log('Creating ticket with:', createTicketForm)
-      setCreateTicketForm({
-        tokenInKey: '',
-        tokenOutKey: '',
-        amountIn: '',
-        minAmountOut: '',
-        expiryHours: ''
-      })
+      console.log('Creating ticket with:', form)
       setIsCreatingTicket(false)
     } catch (error) {
       console.error('Error creating ticket:', error)
@@ -96,147 +79,15 @@ export default function TicketsPage() {
       ]
 
       return (
-        <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Create New Ticket</h2>
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsCreatingTicket(false)}
-              className="hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-          </div>
-          <form onSubmit={handleCreateTicket} className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-gray-900 text-gray-400 w-64">
-                    {assetInType ? assetInType.name : 'Select Asset In'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="bg-gray-900 text-gray-400 border-none"
-                  style={{
-                    width: '16rem',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                  }}
-                >
-                  {assets.map((asset, index) => (
-                    <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetInType(asset)}>
-                      {asset.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <span className="text-gray-400">→</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-gray-900 text-gray-400 w-64">
-                    {assetOutType ? assetOutType.name : 'Select Asset Out'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="bg-gray-900 text-gray-400 border-none"
-                  style={{
-                    width: '16rem',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                  }}
-                >
-                  {assets.map((asset, index) => (
-                    <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetOutType(asset)}>
-                      {asset.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Amount In</label>
-              <Input
-                type="number"
-                placeholder="Amount of asset to swap"
-                value={createTicketForm.amountIn}
-                onChange={(e) => setCreateTicketForm(prev => ({...prev, amountIn: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Minimum Amount Out</label>
-              <Input
-                type="number"
-                placeholder="Minimum amount to receive"
-                value={createTicketForm.minAmountOut}
-                onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Expiry Hours</label>
-              <Input
-                type="number"
-                placeholder="Number of hours until expiry"
-                value={createTicketForm.expiryHours}
-                onChange={(e) => setCreateTicketForm(prev => ({...prev, expiryHours: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-              Create Ticket
-            </Button>
-          </form>
-        </Card>
+        <CreateTicket
+          onCancelAction={() => setIsCreatingTicket(false)}
+          onSubmitAction={handleCreateTicket}
+          assets={assets}
+        />
       )
     }
 
-    return selectedTicket ? (
-      <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
-        <h2 className="text-2xl font-bold mb-4">
-          P2P Trade - {selectedTicket.assetIn.symbol} → {selectedTicket.assetOut.symbol}
-        </h2>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Creator</p>
-              <p className="text-gray-300 truncate">{selectedTicket.creator}</p>
-            </div>
-            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Status</p>
-              <p className="text-gray-300">{selectedTicket.status}</p>
-            </div>
-          </div>
-          <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-            <p className="text-sm text-gray-400">Selling</p>
-            <p className="text-gray-300">
-              {formatAmount(selectedTicket.amountIn, selectedTicket.assetIn.decimals ?? 0)} {selectedTicket.assetIn.symbol}
-            </p>
-          </div>
-          <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-            <p className="text-sm text-gray-400">Minimum Receiving</p>
-            <p className="text-gray-300">
-              {formatAmount(selectedTicket.minAmountOut, selectedTicket.assetOut.decimals ?? 0)} {selectedTicket.assetOut.symbol}
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Created At</p>
-              <p className="text-gray-300">{selectedTicket.createdAt}</p>
-            </div>
-            <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-              <p className="text-sm text-gray-400">Expires At</p>
-              <p className="text-gray-300">{selectedTicket.expiresAt}</p>
-            </div>
-          </div>
-          <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
-            Take Trade
-          </button>
-        </div>
-      </Card>
-    ) : null
+    return selectedTicket ? <SelectedTicket ticket={selectedTicket} /> : null
   }
 
   const formatAmount = (amount: number, decimals: number) => {
