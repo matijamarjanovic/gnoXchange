@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { PaginationControls } from '../components/pagination-controls'
+import { PaginationControls } from '../../../components/pagination-controls'
 
 interface CreateTicketForm {
   tokenInKey: string

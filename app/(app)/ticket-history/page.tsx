@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Filter } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { PaginationControls } from '../components/pagination-controls';
-import { TicketSidebar } from "../components/ticket-sidebar";
+import { PaginationControls } from '../../../components/pagination-controls';
+import { TicketSidebar } from "../../../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
 
 const PAGE_SIZE_KEY = 'ticketHistory.pageSize'

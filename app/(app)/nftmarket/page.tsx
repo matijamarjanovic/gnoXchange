@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useEffect, useState } from 'react'
-import { PaginationControls } from '../components/pagination-controls'
+import { PaginationControls } from '../../../components/pagination-controls'
 
 export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])

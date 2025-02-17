@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet"
 import { ArrowDown, ArrowRight } from "lucide-react"
 import { useState } from "react"
-import { useTicketSidebar } from "../contexts/TicketSidebarContext"
+import { useTicketSidebar } from "../app/(app)/contexts/TicketSidebarContext"
 
 export function TicketSidebar() {
   const { selectedTicket, isOpen, setIsOpen, setSelectedTicket } = useTicketSidebar()

@@ -29,7 +29,7 @@ export function PaginationControls({
         variant="ghost"
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
-        className="bg-gray-800 hover:bg-gray-700"
+        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400"
       >
         Previous
       </Button>
@@ -40,7 +40,7 @@ export function PaginationControls({
         variant="ghost"
         onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="bg-gray-800 hover:bg-gray-700"
+        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400"
       >
         Next
       </Button>
@@ -56,7 +56,7 @@ export function PaginationControls({
               <DropdownMenuItem
                 key={size}
                 onClick={() => onPageSizeChange(size)}
-                className="text-gray-400 hover:text-gray-700"
+                className="text-gray-400 hover:text-gray-900"
               >
                 {size} tickets
               </DropdownMenuItem>

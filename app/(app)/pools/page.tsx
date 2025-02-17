@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/tooltip"
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { CreatePool } from '../components/create-pool'
-import { PaginationControls } from '../components/pagination-controls'
-import { SelectedPool } from '../components/selected-pool'
+import { CreatePool } from '../../../components/create-pool'
+import { PaginationControls } from '../../../components/pagination-controls'
+import { SelectedPool } from '../../../components/selected-pool'
 
 interface CreatePoolForm {
   tokenA: string
