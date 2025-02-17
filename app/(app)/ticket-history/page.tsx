@@ -4,9 +4,9 @@ import { Ticket, TicketStatus } from '@/app/types';
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { PaginationControls } from '../components/pagination-controls';
 import { TicketSidebar } from "../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
 
@@ -59,50 +59,6 @@ export default function TicketHistory() {
     setIsLoading(false)
   }, [pageSize, filterStatus])
 
-  const pageSizeOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 5)
-
-  const PaginationControls = () => (
-    <div className="flex items-center gap-3">
-      <Button
-        variant="ghost"
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-        className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9"
-      >
-        Previous
-      </Button>
-      <span className="text-gray-400 text-sm">
-        Page {currentPage} of {totalPages}
-      </span>
-      <Button
-        variant="ghost"
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-        className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9"
-      >
-        Next
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="bg-gray-800 hover:bg-gray-900 hover:text-gray-400 h-9">
-            {pageSize} per page <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-gray-800 border-none">
-          {pageSizeOptions.map((size) => (
-            <DropdownMenuItem
-              key={size}
-              onClick={() => setPageSize(size)}
-              className="text-gray-400 hover:text-gray-700"
-            >
-              {size} tickets
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  )
-
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const bottom = Math.abs(e.currentTarget.scrollHeight - e.currentTarget.scrollTop - e.currentTarget.clientHeight) < 1;
     const top = e.currentTarget.scrollTop === 0;
@@ -134,7 +90,13 @@ export default function TicketHistory() {
                 {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
               </span>
             </Button>
-            <PaginationControls />
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           </div>
         </div>
         <div className="relative">

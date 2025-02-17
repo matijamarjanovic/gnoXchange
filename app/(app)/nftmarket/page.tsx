@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useEffect, useState } from 'react'
+import { PaginationControls } from '../components/pagination-controls'
 
 export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -60,34 +61,6 @@ export default function NFTMarketPage() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [currentPage, pageSize])
-
-  const PaginationControls = () => {
-    const totalPages = Math.ceil(totalTickets / pageSize)
-    
-    return (
-      <div className="flex justify-center items-center gap-2 mt-8">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="bg-gray-800 hover:bg-gray-700"
-        >
-          Previous
-        </Button>
-        <span className="text-gray-400">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="bg-gray-800 hover:bg-gray-700"
-        >
-          Next
-        </Button>
-      </div>
-    )
-  }
 
   const handleSellNFT = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -253,7 +226,12 @@ export default function NFTMarketPage() {
               </Card>
             ))}
           </div>
-          <PaginationControls />
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalTickets / pageSize)}
+            onPageChange={setCurrentPage}
+            variant="minimal"
+          />
         </div>
 
         <div className="w-2/3">
