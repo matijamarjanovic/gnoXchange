@@ -1,11 +1,17 @@
 'use client'
 
-import { mockPools } from '@/app/mock'
-import { PoolInfo } from '@/app/types'
+import { GnoService } from '@/app/services/abci_service'
+import { PoolInfo, TokenDetails } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useEffect, useState } from 'react'
 
 interface CreatePoolForm {
@@ -22,7 +28,7 @@ export default function PoolsPage() {
   const [isCreatingPool, setIsCreatingPool] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
-  const [totalPools] = useState(mockPools.length)
+  const [totalPools, setTotalPools] = useState(0)
   const [createPoolForm, setCreatePoolForm] = useState<CreatePoolForm>({
     tokenA: '',
     tokenB: '',
@@ -31,6 +37,94 @@ export default function PoolsPage() {
   })
 
   useEffect(() => {
+    const fetchPoolsData = async () => {
+      try {
+        const gnoService = new GnoService()
+        
+        // returns "(100 int)"
+        const poolCount = await gnoService.evaluateExpression(
+          'gno.land/r/matijamarjanovic/gnoxchange',
+          'GetAllPoolNamesCount()'
+        )
+        
+        // parsing
+        const numberMatch = poolCount.match(/\((\d+)\s+int\)/)
+        const parsedCount = numberMatch ? parseInt(numberMatch[1]) : 0
+        
+        if (isNaN(parsedCount)) {
+          console.error('Failed to parse pool count:', poolCount)
+          setTotalPools(0)
+        } else {
+          setTotalPools(parsedCount)
+        }
+
+        const poolsData = await gnoService.evaluateExpression(
+          'gno.land/r/matijamarjanovic/gnoxchange',
+          `GetPoolsPageInfoString("?page=${currentPage}&size=${pageSize}")`
+        )
+                
+        if (!poolsData) {
+          console.error('No pools data received')
+          setPools([])
+          setIsLoading(false)
+          return
+        }
+
+        const poolsArray = poolsData.split(';')
+          .filter(Boolean)
+          .map(poolStr => {
+            if (!poolStr.includes('>')) return null
+            
+            const [key, info] = poolStr.split('>')
+            
+            // parsing pool info
+            const tokenAMatch = info.match(/TokenA:{([^}]+)}/)
+            const tokenBMatch = info.match(/TokenB:{([^}]+)}/)
+            const reserveMatch = info.match(/ReserveA:(\d+),ReserveB:(\d+),TotalSupplyLP:(\d+)/)
+            
+            if (!tokenAMatch || !tokenBMatch || !reserveMatch) return null
+
+            const parseTokenInfo = (tokenStr: string): TokenDetails => {
+              const parts = tokenStr.split(',').reduce((acc: { [key: string]: string }, part) => {
+                const [k, v] = part.split(':')
+                acc[k] = v
+                return acc
+              }, {})
+              
+              return {
+                key: parts.Path,
+                name: parts.Name,
+                symbol: parts.Symbol,
+                decimals: parseInt(parts.Decimals)
+              }
+            }
+
+            return {
+              poolKey: key,
+              tokenAInfo: parseTokenInfo(tokenAMatch[1]),
+              tokenBInfo: parseTokenInfo(tokenBMatch[1]),
+              reserveA: parseInt(reserveMatch[1]),
+              reserveB: parseInt(reserveMatch[2]),
+              totalSupplyLP: parseInt(reserveMatch[3])
+            }
+          })
+          .filter((pool): pool is PoolInfo => pool !== null)
+
+        setPools(poolsArray)
+        if (poolsArray.length > 0 && !selectedPool) {
+          setSelectedPool(poolsArray[0])
+        }
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error fetching pools data:', error)
+        console.error('Error details:', {
+          message: (error as Error).message,
+          stack: (error as Error).stack
+        })
+        setIsLoading(false)
+      }
+    }
+
     const calculatePageSize = () => {
       const cardHeight = 116 
       const searchBarHeight = 40
@@ -39,31 +133,20 @@ export default function PoolsPage() {
       return Math.floor((containerHeight - searchBarHeight - paginationHeight) / cardHeight)
     }
 
-    const initializePools = () => {
-      const calculatedPageSize = calculatePageSize()
-      setPageSize(calculatedPageSize)
-      
-      const start = (currentPage - 1) * calculatedPageSize
-      const end = start + calculatedPageSize
-      const paginatedPools = mockPools.slice(start, end)
-      
-      setPools(paginatedPools)
-      setSelectedPool(paginatedPools[0])
-      setIsLoading(false)
-    }
-
-    initializePools()
+    const newPageSize = calculatePageSize()
+    setPageSize(newPageSize)
+    fetchPoolsData()
 
     const handleResize = () => {
-      const newPageSize = calculatePageSize()
-      if (newPageSize !== pageSize) {
-        setPageSize(newPageSize)
+      const calculatedPageSize = calculatePageSize()
+      if (calculatedPageSize !== pageSize) {
+        setPageSize(calculatedPageSize)
       }
     }
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [currentPage, pageSize])
+  }, [currentPage, pageSize, selectedPool])
 
   const PaginationControls = () => {
     const totalPages = Math.ceil(totalPools / pageSize)
@@ -178,7 +261,7 @@ export default function PoolsPage() {
     return selectedPool ? (
       <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
         <h2 className="text-2xl font-bold mb-4">
-          Swap - {selectedPool.tokenAInfo.symbol}/{selectedPool.tokenBInfo.symbol}
+          {selectedPool.tokenAInfo.symbol} ⇄ {selectedPool.tokenBInfo.symbol}
         </h2>
         <div className="space-y-4">
           <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
@@ -239,10 +322,30 @@ export default function PoolsPage() {
                 setIsCreatingPool(false)
               }}
             >
-              <h3 className="font-bold text-lg">{pool.poolKey}</h3>
-              <div className="text-sm text-gray-400">
-                <p>{`${pool.tokenAInfo.symbol}/${pool.tokenBInfo.symbol}`}</p>
-                <p>Liquidity: ${((pool.reserveA + pool.reserveB) / 1000000).toFixed(2)}</p>
+              <h3 className="font-bold text-lg">{`${pool.tokenAInfo.symbol} ⇄ ${pool.tokenBInfo.symbol}`}</h3>
+              <div className="text-xs text-gray-400 space-y-1">
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger>
+                        <p>Liquidity</p>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-[10px] bg-gray-700 border-gray-900 text-gray-400">
+                        <p>All values are shown in their native token denominations.</p>
+                        <div className="flex space-x-2">
+                          <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.tokenAInfo.decimals} decimals</p>
+                          <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.tokenBInfo.decimals} decimals</p>
+                          <p><strong>LP Token</strong> 6 decimals</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="flex space-x-4">
+                  <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.reserveA}</p>
+                  <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.reserveB}</p>
+                  <p><strong>LP amount</strong> {pool.totalSupplyLP}</p>
+                </div>
               </div>
             </Card>
           ))}
