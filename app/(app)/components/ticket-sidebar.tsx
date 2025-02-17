@@ -1,14 +1,15 @@
 'use client'
 
+import { formatDate } from '@/app/utils'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { ArrowDown, ArrowRight } from "lucide-react"
 import { useState } from "react"
@@ -110,11 +111,11 @@ export function TicketSidebar() {
             </div>
             <div className="flex justify-between text-sm text-gray-400">
               <span>Created</span>
-              <span>{new Date(selectedTicket.createdAt).toLocaleString()}</span>
+              <span>{formatDate(selectedTicket.createdAt)}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-400">
               <span>Expires</span>
-              <span>{new Date(selectedTicket.expiresAt).toLocaleString()}</span>
+              <span>{formatDate(selectedTicket.expiresAt)}</span>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 'use client'
 import { mockNFTTickets, mockTickets } from "@/app/mock";
 import { Ticket, TicketStatus } from '@/app/types';
+import { formatTime } from '@/app/utils';
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -147,12 +148,7 @@ export default function TicketHistory() {
                       {ticket.status}
                     </span>
                     <span className="text-gray-500">
-                      {new Date(ticket.createdAt).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false
-                      })}
+                      {formatTime(ticket.createdAt)}
                     </span>
                   </div>
                 </div>

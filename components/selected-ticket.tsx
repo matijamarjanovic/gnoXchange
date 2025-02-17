@@ -1,6 +1,7 @@
 'use client'
 
 import { Ticket } from "@/app/types"
+import { formatAmount } from '@/app/utils'
 import { Card } from "@/components/ui/card"
 
 interface SelectedTicketProps {
@@ -8,10 +9,6 @@ interface SelectedTicketProps {
 }
 
 export function SelectedTicket({ ticket }: SelectedTicketProps) {
-  const formatAmount = (amount: number, decimals: number) => {
-    return (amount / Math.pow(10, decimals)).toFixed(decimals)
-  }
-
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
       <h2 className="text-2xl font-bold mb-4">

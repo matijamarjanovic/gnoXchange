@@ -1,7 +1,9 @@
 'use client'
 
-import { mockCoinDetails, mockTickets, mockTokenDetails } from '@/app/mock'
+import { mockCoinDetails, mockTokenDetails } from '@/app/mock'
+import { getOpenTicketsCount, getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { Ticket } from '@/app/types'
+import { formatAmount } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedTicket } from '@/components/selected-ticket'
@@ -19,13 +21,13 @@ interface CreateTicketForm {
 }
 
 export default function TicketsPage() {
-  const [tickets, setTickets] =     useState<Ticket[]>([])
+  const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isCreatingTicket, setIsCreatingTicket] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
-  const [totalTickets] = useState(mockTickets.length)
+  const [totalTickets, setTotalTickets] = useState(0)
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -36,20 +38,27 @@ export default function TicketsPage() {
       return Math.floor((containerHeight - searchBarHeight - paginationHeight) / cardHeight)
     }
 
-    const initializeTickets = () => {
+    const fetchTickets = async () => {
       const calculatedPageSize = calculatePageSize()
       setPageSize(calculatedPageSize)
       
-      const start = (currentPage - 1) * calculatedPageSize
-      const end = start + calculatedPageSize
-      const paginatedTickets = mockTickets.slice(start, end)
-      
-      setTickets(paginatedTickets)
-      setSelectedTicket(paginatedTickets[0])
-      setIsLoading(false)
+      try {
+        const [ticketsCount, ticketsData] = await Promise.all([
+          getOpenTicketsCount(),
+          getOpenTicketsPage(currentPage, calculatedPageSize)
+        ])
+        
+        setTotalTickets(ticketsCount)
+        setTickets(ticketsData)
+        setSelectedTicket(ticketsData[0] || null)
+      } catch (error) {
+        console.error('Error fetching tickets:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    initializeTickets()
+    fetchTickets()
 
     const handleResize = () => {
       const newPageSize = calculatePageSize()
@@ -88,10 +97,6 @@ export default function TicketsPage() {
     }
 
     return selectedTicket ? <SelectedTicket ticket={selectedTicket} /> : null
-  }
-
-  const formatAmount = (amount: number, decimals: number) => {
-    return (amount / Math.pow(10, decimals)).toFixed(decimals)
   }
 
   if (isLoading) {
