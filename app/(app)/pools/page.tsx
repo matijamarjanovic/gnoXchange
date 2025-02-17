@@ -5,7 +5,6 @@ import { PoolInfo, TokenDetails } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useEffect, useState } from 'react'
+import { CreatePool } from '../components/create-pool'
 import { PaginationControls } from '../components/pagination-controls'
 
 interface CreatePoolForm {
@@ -30,12 +30,6 @@ export default function PoolsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
   const [totalPools, setTotalPools] = useState(0)
-  const [createPoolForm, setCreatePoolForm] = useState<CreatePoolForm>({
-    tokenA: '',
-    tokenB: '',
-    amountA: '',
-    amountB: ''
-  })
 
   useEffect(() => {
     const fetchPoolsData = async () => {
@@ -149,20 +143,13 @@ export default function PoolsPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [currentPage, pageSize, selectedPool])
 
-  const handleCreatePool = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreatePool = async (formData: CreatePoolForm) => {
     try {
       console.log('Creating pool with:', {
-        tokenA: createPoolForm.tokenA,
-        tokenB: createPoolForm.tokenB,
-        amountA: parseInt(createPoolForm.amountA),
-        amountB: parseInt(createPoolForm.amountB)
-      })
-      setCreatePoolForm({
-        tokenA: '',
-        tokenB: '',
-        amountA: '',
-        amountB: ''
+        tokenA: formData.tokenA,
+        tokenB: formData.tokenB,
+        amountA: parseInt(formData.amountA),
+        amountB: parseInt(formData.amountB)
       })
       setIsCreatingPool(false)
     } catch (error) {
@@ -173,61 +160,10 @@ export default function PoolsPage() {
   const renderRightCard = () => {
     if (isCreatingPool) {
       return (
-        <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Create New Pool</h2>
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsCreatingPool(false)}
-              className="hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-          </div>
-          <form onSubmit={handleCreatePool} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm">Token A</label>
-              <Input
-                placeholder="Enter token A symbol"
-                value={createPoolForm.tokenA}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreatePoolForm(prev => ({...prev, tokenA: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Initial Amount A</label>
-              <Input
-                type="number"
-                placeholder="Enter amount for token A"
-                value={createPoolForm.amountA}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreatePoolForm(prev => ({...prev, amountA: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Token B</label>
-              <Input
-                placeholder="Enter token B symbol"
-                value={createPoolForm.tokenB}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreatePoolForm(prev => ({...prev, tokenB: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Initial Amount B</label>
-              <Input
-                type="number"
-                placeholder="Enter amount for token B"
-                value={createPoolForm.amountB}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreatePoolForm(prev => ({...prev, amountB: e.target.value}))}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-              Create Pool
-            </Button>
-          </form>
-        </Card>
+        <CreatePool
+          onClose={() => setIsCreatingPool(false)}
+          onSubmit={handleCreatePool}
+        />
       )
     }
 
