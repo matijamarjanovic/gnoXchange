@@ -1,4 +1,4 @@
-import { GnoService } from '@/app/services/abci_service'
+import { GnoService } from '@/app/services/abci-service'
 import { PoolInfo, TokenDetails } from '@/app/types'
 
 const REALM_PATH = 'gno.land/r/matijamarjanovic/gnoxchange'
