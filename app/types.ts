@@ -40,7 +40,7 @@ export interface NFTDetails {
   uri: string
 }
 
-export type TicketStatus = 'open' | 'completed' | 'pending' | 'all';
+export type TicketStatus = 'open' | 'fulfilled' | 'cancelled' | 'expired' | 'all';
 
 export interface PoolInfo {
   poolKey: string

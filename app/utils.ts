@@ -1,3 +1,12 @@
+import {
+    AlertCircle,
+    CheckCircle2,
+    CircleDot,
+    Clock,
+    XCircle
+} from 'lucide-react'
+import { TicketStatus } from './types'
+
 export const formatDate = (dateStr: string | null) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
@@ -15,11 +24,50 @@ export const formatTime = (dateStr: string) => {
   return new Date(dateStr).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: false
   })
 }
 
 export const formatAmount = (amount: number, decimals: number = 6) => {
   return (amount / Math.pow(10, decimals)).toFixed(decimals)
+}
+
+export const getTicketStatusConfig = (status: TicketStatus) => {
+  switch (status) {
+    case 'open':
+      return {
+        icon: Clock,
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-900/50',
+        label: 'Open'
+      }
+    case 'fulfilled':
+      return {
+        icon: CheckCircle2,
+        color: 'text-green-400',
+        bgColor: 'bg-green-900/50',
+        label: 'Fulfilled'
+      }
+    case 'cancelled':
+      return {
+        icon: XCircle,
+        color: 'text-red-400',
+        bgColor: 'bg-red-900/50',
+        label: 'Cancelled'
+      }
+    case 'expired':
+      return {
+        icon: AlertCircle,
+        color: 'text-yellow-400',
+        bgColor: 'bg-yellow-900/50',
+        label: 'Expired'
+      }
+    case 'all':
+      return {
+        icon: CircleDot,
+        color: 'text-gray-400',
+        bgColor: 'bg-gray-900/50',
+        label: 'All'
+      }
+  }
 } 

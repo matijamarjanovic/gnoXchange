@@ -30,7 +30,7 @@ export default function TicketHistory() {
   }, [pageSize])
 
   const toggleFilterStatus = () => {
-    const statuses: TicketStatus[] = ['all', 'open', 'completed', 'pending'];
+    const statuses: TicketStatus[] = ['all', 'open', 'fulfilled', 'cancelled', 'expired'];
     const currentIndex = statuses.indexOf(filterStatus);
     const nextIndex = (currentIndex + 1) % statuses.length;
     setFilterStatus(statuses[nextIndex]);
@@ -139,9 +139,9 @@ export default function TicketHistory() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`px-2 py-0.5 rounded-full ${
-                      ticket.status === 'completed' 
+                      ticket.status === 'fulfilled' 
                         ? 'bg-green-900/50 text-green-400'
-                        : ticket.status === 'pending'
+                        : ticket.status === 'cancelled'
                         ? 'bg-yellow-900/50 text-yellow-400'
                         : 'bg-red-900/50 text-red-400'
                     }`}>

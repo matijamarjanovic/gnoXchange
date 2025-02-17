@@ -3,12 +3,13 @@
 import { mockCoinDetails, mockTokenDetails } from '@/app/mock'
 import { getOpenTicketsCount, getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { Ticket } from '@/app/types'
-import { formatAmount } from '@/app/utils'
+import { formatTime } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedTicket } from '@/components/selected-ticket'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../components/pagination-controls'
 
@@ -31,7 +32,7 @@ export default function TicketsPage() {
 
   useEffect(() => {
     const calculatePageSize = () => {
-      const cardHeight = 130 
+      const cardHeight = 64 
       const searchBarHeight = 40
       const paginationHeight = 40
       const containerHeight = window.innerHeight - 64 
@@ -115,13 +116,13 @@ export default function TicketsPage() {
         />
         <Button 
           onClick={() => setIsCreatingTicket(true)}
-          className="bg-primary hover:bg-gray-900 h-9"
+          className="bg-gray-800 hover:bg-gray-900 h-9"
         >
-          Create Ticket
+          <CirclePlus className="" /> Create Ticket
         </Button>
       </div>
       <div className="flex gap-6">
-        <div className="w-1/3 space-y-4">
+        <div className="w-1/3 space-y-3">
           {tickets.map((ticket) => (
             <Card
               key={ticket.id}
@@ -133,11 +134,21 @@ export default function TicketsPage() {
                 setIsCreatingTicket(false)
               }}
             >
-              <h3 className="font-bold text-lg">Ticket {ticket.id}</h3>
-              <div className="text-sm text-gray-400">
-                <p>{`${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`}</p>
-                <p>Amount: {formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 0)} {ticket.assetIn.symbol}</p>
-                <p>Status: {ticket.status}</p>
+              <div className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-500 w-16">{ticket.id}</span>
+                  <span>
+                    {ticket.assetIn.type === 'nft' 
+                      ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                      : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom}`
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-500">
+                    {formatTime(ticket.createdAt)}
+                  </span>
+                </div>
               </div>
             </Card>
           ))}

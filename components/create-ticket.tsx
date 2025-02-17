@@ -54,7 +54,9 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="bg-gray-900 text-gray-400 w-64">
-                {assetInType ? assetInType.name : 'Select Asset In'}
+                {assetInType 
+                  ? (assetInType.symbol || assetInType.denom || assetInType.name) 
+                  : 'Select Asset In'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -77,7 +79,9 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="bg-gray-900 text-gray-400 w-64">
-                {assetOutType ? assetOutType.name : 'Select Asset Out'}
+                {assetOutType 
+                  ? (assetOutType.symbol || assetOutType.denom || assetOutType.name) 
+                  : 'Select Asset Out'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 

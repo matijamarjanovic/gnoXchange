@@ -1,7 +1,7 @@
 'use client'
 
 import { Ticket } from "@/app/types"
-import { formatAmount } from '@/app/utils'
+import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { Card } from "@/components/ui/card"
 
 interface SelectedTicketProps {
@@ -9,10 +9,15 @@ interface SelectedTicketProps {
 }
 
 export function SelectedTicket({ ticket }: SelectedTicketProps) {
+  const statusConfig = getTicketStatusConfig(ticket.status)
+  const StatusIcon = statusConfig.icon
+
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
-      <h2 className="text-2xl font-bold mb-4">
-        P2P Trade - {ticket.assetIn.symbol} → {ticket.assetOut.symbol}
+      <h2 className="text-lg font-bold mb-4">
+        P2P Trade <span className="text-2xl ml-2">
+          {ticket.assetIn.symbol || ticket.assetIn.denom} → {ticket.assetOut.symbol || ticket.assetOut.denom}
+        </span>
       </h2>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -22,19 +27,22 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
           </div>
           <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
             <p className="text-sm text-gray-400">Status</p>
-            <p className="text-gray-300">{ticket.status}</p>
+            <p className="text-gray-300 flex items-center gap-2">
+              <StatusIcon className={`h-4 w-4 ${statusConfig.color}`} />
+              {statusConfig.label}
+            </p>
           </div>
         </div>
         <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
           <p className="text-sm text-gray-400">Selling</p>
           <p className="text-gray-300">
-            {formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 0)} {ticket.assetIn.symbol}
+            {formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 6)} {ticket.assetIn.symbol || ticket.assetIn.denom}
           </p>
         </div>
         <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
           <p className="text-sm text-gray-400">Minimum Receiving</p>
           <p className="text-gray-300">
-            {formatAmount(ticket.minAmountOut, ticket.assetOut.decimals ?? 0)} {ticket.assetOut.symbol}
+            {formatAmount(ticket.minAmountOut, ticket.assetOut.decimals ?? 6)} {ticket.assetOut.symbol || ticket.assetOut.denom}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4">

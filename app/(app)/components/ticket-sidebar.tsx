@@ -100,9 +100,9 @@ export function TicketSidebar() {
             <div className="flex justify-between text-sm text-gray-400">
               <span>Status</span>
               <span className={`px-2 py-0.5 rounded-full ${
-                selectedTicket.status === 'completed' 
+                selectedTicket.status === 'fulfilled' 
                   ? 'bg-green-900/50 text-green-400'
-                  : selectedTicket.status === 'pending'
+                  : selectedTicket.status === 'cancelled'
                   ? 'bg-yellow-900/50 text-yellow-400'
                   : 'bg-red-900/50 text-red-400'
               }`}>
