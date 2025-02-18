@@ -41,7 +41,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
         <Button 
           variant="ghost" 
           onClick={onClose}
-          className="hover:bg-gray-700"
+          className="hover:bg-gray-900 bg-gray-900 text-gray-400 hover:text-gray-400"
         >
           Cancel
         </Button>
@@ -89,7 +89,10 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
             className="bg-gray-900 border-gray-700"
           />
         </div>
-        <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
+        <Button 
+          type="submit" 
+          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+        >
           Create Pool
         </Button>
       </form>

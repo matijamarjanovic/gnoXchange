@@ -59,13 +59,19 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			},
+        navy: {
+          600: '#1a365d',
+          700: '#153e75',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
   		}
+  	},
+  	borderRadius: {
+  		lg: 'var(--radius)',
+  		md: 'calc(var(--radius) - 2px)',
+  		sm: 'calc(var(--radius) - 4px)'
   	}
   },
   plugins: [require("tailwindcss-animate")],

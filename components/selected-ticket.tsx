@@ -3,14 +3,24 @@
 import { Ticket } from "@/app/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { Card } from "@/components/ui/card"
+import { Handshake } from "lucide-react"
+import { useState } from "react"
+import { Button } from "./ui/button"
 
 interface SelectedTicketProps {
   ticket: Ticket
 }
 
 export function SelectedTicket({ ticket }: SelectedTicketProps) {
+  const [isTrading, setIsTrading] = useState(false)
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
+
+  const handleTrade = () => {
+    setIsTrading(true)
+    // Add your trade logic here
+    setTimeout(() => setIsTrading(false), 1000) // Reset after animation
+  }
 
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
@@ -55,9 +65,14 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
             <p className="text-gray-300">{ticket.expiresAt}</p>
           </div>
         </div>
-        <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
-          Take Trade
-        </button>
+        <Button 
+          onClick={handleTrade}
+          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          disabled={isTrading}
+        >
+          <Handshake className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
+          {isTrading ? 'Swapping...' : 'Swap'}
+        </Button>
       </div>
     </Card>
   )

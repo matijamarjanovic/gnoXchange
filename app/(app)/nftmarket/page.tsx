@@ -1,22 +1,18 @@
 'use client'
 
-import { mockCoinDetails, mockNFTDetails, mockNFTTickets, mockTokenDetails } from '@/app/mock'
+import { mockNFTTickets } from '@/app/mock'
 import { Asset, NFTDetails, Ticket } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
+import { SellNFT } from '@/components/sell-nft'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
 
 export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
-  const [nftDetails, setNftDetails] = useState<NFTDetails | null>(null)
   const [isSellingNFT, setIsSellingNFT] = useState(false)
-  const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
-  const [amountOut, setAmountOut] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
@@ -62,116 +58,14 @@ export default function NFTMarketPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [currentPage, pageSize])
 
-  const handleSellNFT = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSellNFT = async (nft: NFTDetails, assetType: Asset, amount: string) => {
     try {
-      if (nftDetails && assetOutType && amountOut) {
-        console.log('Selling NFT:', nftDetails, 'for', amountOut, assetOutType)
-        // todo: implement the logic to sell the NFT
-        setIsSellingNFT(false)
-      }
+      console.log('Selling NFT:', nft, 'for', amount, assetType)
+      // todo: implement the logic to sell the NFT
+      setIsSellingNFT(false)
     } catch (error) {
       console.error('Error selling NFT:', error)
     }
-  }
-
-
-  const renderSellNFTCard = () => {
-    if (isSellingNFT) {
-      const assetOptions = [
-        ...mockCoinDetails.map(coin => ({ type: 'coin', denom: coin.denom, name: coin.name })),
-        ...mockTokenDetails.map(token => ({ type: 'token', key: token.key, name: token.name, symbol: token.symbol })),
-      ]
-
-      return (
-        <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Sell NFT</h2>
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsSellingNFT(false)}
-              className="hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-          </div>
-          <form onSubmit={handleSellNFT} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm">Select NFT</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-gray-900 text-gray-400 w-full">
-                    {nftDetails ? nftDetails.tokenId : 'Select NFT'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="bg-gray-900 text-gray-400 border-none"
-                  style={{
-                    width: '100%',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                  }}
-                >
-                  {mockNFTDetails.map((nft, index) => (
-                    <DropdownMenuItem 
-                      className="hover:bg-gray-800" 
-                      key={index} 
-                      onClick={() => setNftDetails(nft)}
-                    >
-                      {nft.tokenId}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Select Asset to Receive</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-gray-900 text-gray-400 w-full">
-                    {assetOutType ? assetOutType.name : 'Select Asset'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="bg-gray-900 text-gray-400 border-none"
-                  style={{
-                    width: '100%',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                  }}
-                >
-                  {assetOptions.map((asset, index) => (
-                    <DropdownMenuItem 
-                      className="hover:bg-gray-800" 
-                      key={index} 
-                      onClick={() => setAssetOutType(asset)}
-                    >
-                      {asset.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm">Amount of Asset</label>
-              <Input
-                type="number"
-                placeholder="Amount to receive"
-                value={amountOut}
-                onChange={(e) => setAmountOut(e.target.value)}
-                className="bg-gray-900 border-gray-700"
-              />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
-              Sell NFT
-            </Button>
-          </form>
-        </Card>
-      )
-    }
-    return null
   }
 
   if (isLoading) {
@@ -235,7 +129,12 @@ export default function NFTMarketPage() {
         </div>
 
         <div className="w-2/3">
-          {isSellingNFT ? renderSellNFTCard() : (
+          {isSellingNFT ? (
+            <SellNFT 
+              onCloseAction={() => setIsSellingNFT(false)}
+              onSubmitAction={handleSellNFT}
+            />
+          ) : (
             selectedTicket && (
               <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
                 <h2 className="text-2xl font-bold mb-4">

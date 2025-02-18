@@ -44,7 +44,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
         <Button 
           variant="ghost" 
           onClick={onCancelAction}
-          className="hover:bg-gray-700"
+          className="bg-gray-900 text-gray-400 hover:bg-gray-900 hover:text-gray-400"
         >
           Cancel
         </Button>
@@ -53,7 +53,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-gray-900 text-gray-400 w-64">
+              <Button className="bg-gray-900 text-gray-400 hover:ring-2 hover:ring-gray-700 hover:bg-gray-900 hover:text-gray-400 w-64">
                 {assetInType 
                   ? (assetInType.symbol || assetInType.denom || assetInType.name) 
                   : 'Select Asset In'}
@@ -78,7 +78,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
           <span className="text-gray-400">→</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-gray-900 text-gray-400 w-64">
+              <Button className="bg-gray-900 text-gray-400 hover:ring-2 hover:ring-gray-700 hover:bg-gray-900 hover:text-gray-400 w-64">
                 {assetOutType 
                   ? (assetOutType.symbol || assetOutType.denom || assetOutType.name) 
                   : 'Select Asset Out'}
@@ -131,7 +131,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
             className="bg-gray-900 border-gray-700"
           />
         </div>
-        <Button type="submit" className="w-full bg-primary hover:bg-gray-900">
+        <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md">
           Create Ticket
         </Button>
       </form>

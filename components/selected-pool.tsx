@@ -1,5 +1,7 @@
 import { PoolInfo } from "@/app/types"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { RefreshCw } from "lucide-react"
 import { useState } from "react"
 
 interface SelectedPoolProps {
@@ -9,7 +11,15 @@ interface SelectedPoolProps {
 export function SelectedPool({ pool }: SelectedPoolProps) {
   const [fromAmount, setFromAmount] = useState<string>("")
   const [toAmount, setToAmount] = useState<string>("")
+  const [isSwapping, setIsSwapping] = useState(false)
 
+  const handleSwap = () => {
+    setIsSwapping(true)
+    // Add your swap logic here
+    setTimeout(() => setIsSwapping(false), 1000) // Reset after animation
+  }
+
+  // todo : add toast when swapping
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
       <h2 className="text-2xl font-bold mb-4">
@@ -36,9 +46,14 @@ export function SelectedPool({ pool }: SelectedPoolProps) {
             onChange={(e) => setToAmount(e.target.value)}
           />
         </div>
-        <button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
-          Swap
-        </button>
+        <Button 
+          onClick={handleSwap}
+          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          disabled={isSwapping}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 transition-transform duration-500 ${isSwapping ? 'rotate-180' : ''}`} />
+          {isSwapping ? 'Swapping...' : 'Swap'}
+        </Button>
       </div>
     </Card>
   )

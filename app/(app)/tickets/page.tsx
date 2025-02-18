@@ -126,8 +126,8 @@ export default function TicketsPage() {
           {tickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
-                selectedTicket?.id === ticket.id && !isCreatingTicket ? 'ring-2 ring-primary' : ''
+              className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900${
+                selectedTicket?.id === ticket.id && !isCreatingTicket ? 'ring-2 ring-gray-900' : ''
               }`}
               onClick={() => {
                 setSelectedTicket(ticket)
