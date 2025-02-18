@@ -14,7 +14,7 @@ interface SellNFTProps {
   onSubmitAction: (nft: NFTDetails, assetType: Asset, amount: string) => void
 }
 
-export function SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
+export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
   const [nftDetails, setNftDetails] = useState<NFTDetails | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
   const [amountOut, setAmountOut] = useState<string>('')
@@ -51,7 +51,7 @@ export function SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
           <label className="text-sm">Select NFT</label>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-gray-900 text-gray-400 hover:bg-gray-900 w-full">
+              <Button className="bg-gray-900 text-gray-400 hover:bg-gray-900 w-full hover:ring-2 hover:ring-gray-700">
                 {nftDetails ? nftDetails.tokenId : 'Select NFT'}
               </Button>
             </DropdownMenuTrigger>
@@ -83,7 +83,7 @@ export function SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
           <label className="text-sm">Select Asset to Receive</label>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-gray-900 text-gray-400 hover:bg-gray-900 w-full">
+              <Button className="bg-gray-900 text-gray-400 hover:bg-gray-900 w-full hover:ring-2 hover:ring-gray-700">
                 {assetOutType ? assetOutType.name : 'Select Asset'}
               </Button>
             </DropdownMenuTrigger>

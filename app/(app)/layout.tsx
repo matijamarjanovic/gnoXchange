@@ -33,20 +33,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </div>
         <header className="relative z-10">
-          <div className="flex h-16 items-center px-4 bg-gray-800 rounded-b-lg mb-2">
+          <div className="flex h-16 items-center bg-gray-800 rounded-b-lg mb-2">
             <div className="flex w-full text-lg">
               <div className="flex items-center gap-4">
                 <Link 
                   href="/" 
-                  className="font-bold text-xl bg-gradient-to-r from-blue-600 via-navy-600 to-blue-600 bg-clip-text text-transparent transition-colors"
+                  className={`font-bold text-xl bg-blue-600 bg-clip-text text-transparent transition-colors`}
                 >
-                  GnoXchange
+                  <div className="flex items-center">
+                    <Image
+                      src="/gnoxchange-logo.png"
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="ml-4 mr-2"
+                    />
+                    <Image
+                      src="/gnoxchange-logo-letters.png"
+                      alt=""
+                      width={160}
+                      height={160}
+                    />
+                  </div>
                 </Link>
                 <nav className="flex items-center gap-1 bg-gray-900/50 p-1 rounded-lg backdrop-blur-sm">
                   <Link href="/pools">
                     <Button 
                       variant="ghost" 
-                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
                       Liquidity Pools
                     </Button>
@@ -54,7 +68,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/tickets">
                     <Button 
                       variant="ghost" 
-                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
                       Tickets
                     </Button>
@@ -62,7 +76,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/nftmarket">
                     <Button 
                       variant="ghost" 
-                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
                       NFT Marketplace
                     </Button>
@@ -70,7 +84,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/ticket-history">
                     <Button 
                       variant="ghost" 
-                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
                       Ticket History
                     </Button>

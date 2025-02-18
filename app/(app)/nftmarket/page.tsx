@@ -2,7 +2,7 @@
 
 import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
 import { Asset, NFTDetails, Ticket } from '@/app/types'
-import { formatAmount, getNFTName } from '@/app/utils'
+import { formatAmount, getNFTName, getTicketStatusConfig } from '@/app/utils'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedNFT } from '@/components/selected-nft'
 import { SellNFT } from '@/components/sell-nft'
@@ -126,7 +126,18 @@ export default function NFTMarketPage() {
                 <h3 className="font-bold text-lg">NFT {getNFTName(ticket.assetIn.tokenHubPath || '')}</h3>
                 <div className="text-sm text-gray-400">
                   <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
-                  <p>Status: {ticket.status}</p>
+                  <div className="flex items-center gap-1.5">
+                    {(() => {
+                      const statusConfig = getTicketStatusConfig(ticket.status)
+                      return (
+                        <>
+                          <span style={{ color: statusConfig.color }}>
+                            {statusConfig.label}
+                          </span>
+                        </>
+                      )
+                    })()}
+                  </div>
                 </div>
               </Card>
             ))}
