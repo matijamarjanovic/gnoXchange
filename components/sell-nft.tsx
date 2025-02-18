@@ -7,6 +7,7 @@ import { Button } from "./ui/button"
 import { Card } from "./ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Input } from "./ui/input"
+import { DollarSign } from "lucide-react"
 
 interface SellNFTProps {
   onCloseAction: () => void
@@ -17,11 +18,14 @@ export function SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
   const [nftDetails, setNftDetails] = useState<NFTDetails | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
   const [amountOut, setAmountOut] = useState<string>('')
+  const [isSelling, setIsSelling] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (nftDetails && assetOutType && amountOut) {
+      setIsSelling(true)
       onSubmitAction(nftDetails, assetOutType, amountOut)
+      setTimeout(() => setIsSelling(false), 1000)
     }
   }
 
@@ -116,8 +120,13 @@ export function SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
             className="bg-gray-900 border-gray-700"
           />
         </div>
-        <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-900">
-          Sell NFT
+        <Button 
+          type="submit" 
+          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          disabled={isSelling}
+        >
+          <DollarSign className={`mr-2 h-4 w-4 transition-all duration-500 ${isSelling ? 'rotate-[360deg] scale-110' : ''}`} />
+          {isSelling ? 'Listing NFT...' : 'Sell NFT'}
         </Button>
       </form>
     </Card>

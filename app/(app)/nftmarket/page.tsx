@@ -1,6 +1,6 @@
 'use client'
 
-import { mockNFTTickets } from '@/app/mock'
+import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
 import { Asset, NFTDetails, Ticket } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
 import { SellNFT } from '@/components/sell-nft'
@@ -16,7 +16,7 @@ export default function NFTMarketPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
-  const [totalTickets] = useState(mockNFTTickets.length)
+  const [totalTickets, setTotalTickets] = useState(0)
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -32,17 +32,27 @@ export default function NFTMarketPage() {
       return Math.floor(availableHeight / (cardHeight + cardGap))
     }
 
+    const fetchTickets = async (calculatedPageSize: number) => {
+      try {
+        const [ticketsData, ticketsCount] = await Promise.all([
+          getAllNFTTicketsPage(currentPage, calculatedPageSize),
+          getOpenNFTTicketsCount()
+        ])
+        
+        setTickets(ticketsData)
+        setTotalTickets(ticketsCount)
+        setSelectedTicket(ticketsData[0] || null)
+      } catch (error) {
+        console.error('Error fetching NFT tickets:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     const initializeTickets = () => {
       const calculatedPageSize = calculatePageSize()
       setPageSize(calculatedPageSize)
-      
-      const start = (currentPage - 1) * calculatedPageSize
-      const end = start + calculatedPageSize
-      const paginatedTickets = mockNFTTickets.slice(start, end)
-      
-      setTickets(paginatedTickets)
-      setSelectedTicket(paginatedTickets[0])
-      setIsLoading(false)
+      fetchTickets(calculatedPageSize)
     }
 
     initializeTickets()
@@ -173,7 +183,7 @@ export default function NFTMarketPage() {
                       <p className="text-gray-300">{selectedTicket.expiresAt}</p>
                     </div>
                   </div>
-                  <Button className="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-gray-900 transition-colors">
+                  <Button className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md">
                     Buy NFT
                   </Button>
                 </div>
