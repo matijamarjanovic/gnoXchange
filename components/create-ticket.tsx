@@ -1,12 +1,14 @@
 'use client'
 
-import { Asset } from "@/app/types"
+import { getAllTokens } from "@/app/queries/abci-queries"
+import { Asset, TokenDetails } from "@/app/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Ticket } from "lucide-react"
-import { useState } from "react"
+import { Toggle } from "@/components/ui/toggle"
+import { Coins, Ticket } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface CreateTicketForm {
   tokenInKey: string
@@ -19,10 +21,9 @@ interface CreateTicketForm {
 interface CreateTicketProps {
   onCancelAction: () => void
   onSubmitAction: (form: CreateTicketForm) => Promise<void>
-  assets: Array<{ type: string; denom?: string; key?: string; name: string; symbol?: string }>
 }
 
-export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateTicketProps) {
+export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketProps) {
   const [createTicketForm, setCreateTicketForm] = useState<CreateTicketForm>({
     tokenInKey: '',
     tokenOutKey: '',
@@ -32,6 +33,47 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
   })
   const [assetInType, setAssetInType] = useState<Asset | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
+  const [tokens, setTokens] = useState<TokenDetails[]>([])
+  const [showLPTokens, setShowLPTokens] = useState(false)
+
+  // Hardcoded native coin
+  const nativeCoin: Asset = {
+    type: 'coin',
+    denom: 'ugnot',
+    name: 'GNOT',
+    symbol: 'GNOT',
+    decimals: 6
+  }
+
+  useEffect(() => {
+    const fetchTokens = async () => {
+      try {
+        const fetchedTokens = await getAllTokens()
+        setTokens(fetchedTokens)
+      } catch (error) {
+        console.error('Failed to fetch tokens:', error)
+      }
+    }
+    fetchTokens()
+  }, [])
+
+  // Convert TokenDetails to Asset format
+  const assets: Asset[] = [
+    nativeCoin,
+    ...tokens.map(token => ({
+      type: 'token',
+      path: token.key,
+      name: token.name,
+      symbol: token.symbol,
+      decimals: token.decimals
+    }))
+  ]
+
+  // Filter assets based on the LP toggle
+  const filteredAssets = assets.filter(asset => {
+    const isLPToken = asset.symbol?.includes('LP-')
+    return showLPTokens ? true : !isLPToken
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,13 +84,24 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Create New Ticket</h2>
-        <Button 
-          variant="ghost" 
-          onClick={onCancelAction}
-          className="bg-gray-900 text-gray-400 hover:bg-gray-900 hover:text-gray-400"
-        >
-          Cancel
-        </Button>
+        <div className="flex items-center gap-2">
+          <Toggle
+            variant="default"
+            pressed={showLPTokens}
+            onPressedChange={setShowLPTokens}
+            className="bg-gray-900 data-[state=on]:bg-navy-700 data-[state=on]:hover:bg-navy-800 hover:bg-gray-900 hover:text-gray-400"
+          >
+            <Coins className="h-4 w-4 mr-2" />
+            {showLPTokens ? 'Hide' : 'Show'} LP Tokens
+          </Toggle>
+          <Button 
+            variant="ghost" 
+            onClick={onCancelAction}
+            className="bg-gray-900 text-gray-400 hover:bg-gray-900 hover:text-gray-400"
+          >
+            Cancel
+          </Button>
+        </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-4">
@@ -69,9 +122,13 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
                 scrollbarWidth: 'none',
               }}
             >
-              {assets.map((asset, index) => (
-                <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetInType(asset)}>
-                  {asset.name}
+              {filteredAssets.map((asset, index) => (
+                <DropdownMenuItem 
+                  className="hover:bg-gray-800" 
+                  key={index} 
+                  onClick={() => setAssetInType(asset)}
+                >
+                  {asset.symbol || asset.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -94,9 +151,9 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
                 scrollbarWidth: 'none',
               }}
             >
-              {assets.map((asset, index) => (
+              {filteredAssets.map((asset, index) => (
                 <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetOutType(asset)}>
-                  {asset.name}
+                  {asset.symbol || asset.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

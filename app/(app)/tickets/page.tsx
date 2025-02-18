@@ -1,6 +1,5 @@
 'use client'
 
-import { mockCoinDetails, mockTokenDetails } from '@/app/mock'
 import { getOpenTicketsCount, getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { Ticket } from '@/app/types'
 import { formatTime } from '@/app/utils'
@@ -82,16 +81,10 @@ export default function TicketsPage() {
 
   const renderRightCard = () => {
     if (isCreatingTicket) {
-      const assets = [
-        ...mockCoinDetails.map(coin => ({ type: 'coin', denom: coin.denom, name: coin.name })),
-        ...mockTokenDetails.map(token => ({ type: 'token', key: token.key, name: token.name, symbol: token.symbol })),
-      ]
-
       return (
         <CreateTicket
           onCancelAction={() => setIsCreatingTicket(false)}
           onSubmitAction={handleCreateTicket}
-          assets={assets}
         />
       )
     }

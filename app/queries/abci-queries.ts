@@ -2,6 +2,7 @@ import { GnoService } from '@/app/services/abci-service'
 import { Asset, PoolInfo, Ticket, TicketStatus, TokenDetails } from '@/app/types'
 
 const REALM_PATH = 'gno.land/r/matijamarjanovic/gnoxchange'
+const TOKENHUB_PATH = 'gno.land/r/matijamarjanovic/tokenhub'
 const gnoService = new GnoService()
 
 export async function getPoolCount(): Promise<number> {
@@ -384,4 +385,41 @@ export async function getTicketsPage(page: number, pageSize: number): Promise<Ti
     console.error('Error fetching tickets page:', error)
     return []
   }
+}
+
+export async function getAllTokens(): Promise<TokenDetails[]> {
+  try {
+    const tokensData = await gnoService.evaluateExpression(
+      TOKENHUB_PATH,
+      'GetAllTokenWithDetails()'
+    )
+
+    const dataMatch = tokensData.match(/\("([^"]+)"\s+string\)/)
+    if (!dataMatch) {
+      console.error('Invalid tokens data format')
+      return []
+    }
+
+    return dataMatch[1]
+      .split(';')
+      .filter(Boolean)
+      .map(tokenStr => {
+        const parts = tokenStr.split(',').reduce((acc: { [key: string]: string }, part) => {
+          const [k, v] = part.split(':')
+          acc[k] = v
+          return acc
+        }, {})
+
+        return {
+          key: parts.Token,
+          name: parts.Name,
+          symbol: parts.Symbol,
+          decimals: parseInt(parts.Decimals)
+        }
+      })
+  } catch (error) {
+    console.error('Error fetching tokens:', error)
+    return []
+  }
 } 
+

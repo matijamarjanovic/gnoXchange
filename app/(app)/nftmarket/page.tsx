@@ -116,7 +116,7 @@ export default function NFTMarketPage() {
               <Card
                 key={ticket.id}
                 className={`p-3 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
-                  selectedTicket?.id === ticket.id && !isSellingNFT ? 'ring-2 ring-primary' : ''
+                  selectedTicket?.id === ticket.id && !isSellingNFT ? 'ring-2 ring-gray-900' : ''
                 }`}
                 onClick={() => {
                   setSelectedTicket(ticket)
@@ -129,7 +129,7 @@ export default function NFTMarketPage() {
                   <div className="flex items-center gap-1.5">
                     {(() => {
                       const statusConfig = getTicketStatusConfig(ticket.status)
-                      return (
+                        return (
                         <>
                           <span style={{ color: statusConfig.color }}>
                             {statusConfig.label}
