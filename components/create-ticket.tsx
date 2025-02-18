@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Ticket } from "lucide-react"
 import { useState } from "react"
 
 interface CreateTicketForm {
@@ -132,6 +133,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction, assets }: CreateT
           />
         </div>
         <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md">
+          <Ticket className="mr-2 h-4 w-4" />
           Create Ticket
         </Button>
       </form>

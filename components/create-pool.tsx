@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { WavesLadder } from "lucide-react"
 import { useState } from "react"
 
 interface CreatePoolForm {
@@ -93,6 +94,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
           type="submit" 
           className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
         >
+          <WavesLadder className="mr-2 h-4 w-4" />
           Create Pool
         </Button>
       </form>

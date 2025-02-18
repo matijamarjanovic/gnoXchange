@@ -5,10 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Package, Ticket, Wallet } from "lucide-react";
+import { Braces, Ticket, WavesLadder } from "lucide-react";
 import Link from "next/link";
 
-const generateRandomStyles = (count: number) => {
+  const generateRandomStyles = (count: number) => {
   return Array.from({ length: count }, () => ({
     transform: `rotate(${Math.random() * 360}deg)`,
     left: `${Math.random() * 100}%`,
@@ -40,7 +40,7 @@ export default function Home() {
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0">
                 {walletStyles.map((style, i) => (
-                  <Wallet
+                  <WavesLadder
                     key={i}
                     size={24}
                     className="opacity-50 absolute"
@@ -86,7 +86,7 @@ export default function Home() {
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0">
                 {packageStyles.map((style, i) => (
-                  <Package
+                  <Braces
                     key={i}
                     size={24}
                     className="opacity-50 absolute"
