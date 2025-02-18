@@ -23,8 +23,7 @@ export function SelectedNFT({ ticket }: SelectedNFTProps) {
 
   const handleTrade = () => {
     setIsTrading(true)
-    // Add your trade logic here
-    setTimeout(() => setIsTrading(false), 1000) // Reset after animation
+    setTimeout(() => setIsTrading(false), 1000)
   }
 
   return (

@@ -18,8 +18,8 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
 
   const handleTrade = () => {
     setIsTrading(true)
-    // Add your trade logic here
-    setTimeout(() => setIsTrading(false), 1000) // Reset after animation
+    // todo: add trade logic    
+    setTimeout(() => setIsTrading(false), 1000) 
   }
 
   return (

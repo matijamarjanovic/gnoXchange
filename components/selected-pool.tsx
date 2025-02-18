@@ -15,8 +15,8 @@ export function SelectedPool({ pool }: SelectedPoolProps) {
 
   const handleSwap = () => {
     setIsSwapping(true)
-    // Add your swap logic here
-    setTimeout(() => setIsSwapping(false), 1000) // Reset after animation
+    // todo : add swap logic
+    setTimeout(() => setIsSwapping(false), 1000) 
   }
 
   // todo : add toast when swapping
