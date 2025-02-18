@@ -32,6 +32,11 @@ export const formatAmount = (amount: number, decimals: number = 6) => {
   return (amount / Math.pow(10, decimals)).toFixed(decimals)
 }
 
+export const getNFTName = (path: string) => {
+  const parts = path.split('.')
+  return parts[parts.length - 2] + '.' + parts[parts.length - 1]
+}
+
 export const getTicketStatusConfig = (status: TicketStatus) => {
   switch (status) {
     case 'open':

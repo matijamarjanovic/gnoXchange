@@ -1,7 +1,7 @@
 'use client'
-import { mockNFTTickets, mockTickets } from "@/app/mock";
+import { getTicketsCount, getTicketsPage } from "@/app/queries/abci-queries";
 import { Ticket, TicketStatus } from '@/app/types';
-import { formatTime } from '@/app/utils';
+import { formatTime, getNFTName } from '@/app/utils';
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { useTicketSidebar } from "../contexts/TicketSidebarContext";
 const PAGE_SIZE_KEY = 'ticketHistory.pageSize'
 
 export default function TicketHistory() {
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [totalTickets, setTotalTickets] = useState(0)
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
   const [currentPage, setCurrentPage] = useState(1)
@@ -22,12 +24,31 @@ export default function TicketHistory() {
     return storedSize ? parseInt(storedSize) : 25
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
-  const [isScrolledToTop, setIsScrolledToTop] = useState(true);
 
-  useEffect(() => {
+
+  useEffect(() => { 
     localStorage.setItem(PAGE_SIZE_KEY, pageSize.toString())
   }, [pageSize])
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const [count, ticketsData] = await Promise.all([
+          getTicketsCount(),
+          getTicketsPage(currentPage, pageSize)
+        ])
+        
+        setTotalTickets(count)
+        setTickets(ticketsData)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error fetching tickets:', error)
+        setIsLoading(false)
+      }
+    }
+
+    fetchTickets()
+  }, [currentPage, pageSize])
 
   const toggleFilterStatus = () => {
     const statuses: TicketStatus[] = ['all', 'open', 'fulfilled', 'cancelled', 'expired'];
@@ -36,19 +57,11 @@ export default function TicketHistory() {
     setFilterStatus(statuses[nextIndex]);
   };
 
-  const sortedTickets = [...mockTickets, ...mockNFTTickets].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-
-  const filteredTickets = sortedTickets.filter(ticket => 
+  const filteredTickets = tickets.filter(ticket => 
     filterStatus === 'all' || ticket.status === filterStatus
   );
 
-  const totalTickets = filteredTickets.length
   const totalPages = Math.ceil(totalTickets / pageSize)
-  const start = (currentPage - 1) * pageSize
-  const end = start + pageSize
-  const currentTickets = filteredTickets.slice(start, end)
 
   const handleTicketClick = (ticket: Ticket) => {
     setSelectedTicket(ticket)
@@ -57,15 +70,7 @@ export default function TicketHistory() {
 
   useEffect(() => {
     setCurrentPage(1)
-    setIsLoading(false)
-  }, [pageSize, filterStatus])
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const bottom = Math.abs(e.currentTarget.scrollHeight - e.currentTarget.scrollTop - e.currentTarget.clientHeight) < 1;
-    const top = e.currentTarget.scrollTop === 0;
-    setIsScrolledToBottom(bottom);
-    setIsScrolledToTop(top);
-  };
+  }, [filterStatus])
 
   if (isLoading) return null
 
@@ -102,26 +107,9 @@ export default function TicketHistory() {
         </div>
         <div className="relative">
           <div 
-            className="grid gap-1 max-h-[calc(81vh)] overflow-y-auto"
-            onScroll={handleScroll}
-            style={{
-              maskImage: `linear-gradient(
-                to bottom,
-                transparent 0%,
-                black ${isScrolledToTop ? '0%' : '0.5rem'},
-                black calc(100% - ${isScrolledToBottom ? '0rem' : '0.5rem'}),
-                transparent 100%
-              )`,
-              WebkitMaskImage: `linear-gradient(
-                to bottom,
-                transparent 0%,
-                black ${isScrolledToTop ? '0%' : '0.5rem'},
-                black calc(100% - ${isScrolledToBottom ? '0rem' : '0.5rem'}),
-                transparent 100%
-              )`
-            }}
+            className="grid gap-1 max-h-[calc(81vh)] overflow-y-auto" 
           >
-            {currentTickets.map((ticket) => (
+            {filteredTickets.map((ticket) => (
               <Card 
                 key={ticket.id} 
                 className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
@@ -132,8 +120,10 @@ export default function TicketHistory() {
                     <span className="text-gray-500 w-16">{ticket.id}</span>
                     <span>
                       {ticket.assetIn.type === 'nft' 
-                        ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ''}`
-                        : `${ticket.assetIn.symbol} → ${ticket.assetOut.symbol}`
+                        ? `${getNFTName(ticket.assetIn.tokenHubPath || '')} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                        : ticket.assetIn.type === 'coin'
+                        ? `${ticket.assetIn.denom} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                        : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom || ''}`
                       }
                     </span>
                   </div>

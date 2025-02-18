@@ -2,6 +2,7 @@
 
 import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
 import { Asset, NFTDetails, Ticket } from '@/app/types'
+import { formatAmount, getNFTName } from '@/app/utils'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedNFT } from '@/components/selected-nft'
 import { SellNFT } from '@/components/sell-nft'
@@ -81,15 +82,6 @@ export default function NFTMarketPage() {
 
   if (isLoading) {
     return null
-  }
-
-  const formatAmount = (amount: number, decimals: number = 6) => {
-    return (amount / Math.pow(10, decimals)).toFixed(decimals)
-  }
-
-  const getNFTName = (path: string) => {
-    const parts = path.split('.')
-    return parts[parts.length - 1]
   }
 
   return (

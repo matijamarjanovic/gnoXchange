@@ -337,4 +337,51 @@ function parseTicketsData(ticketsStr: string): Ticket[] {
       }
     })
     .filter((ticket): ticket is Ticket => ticket !== null)
+}
+
+export async function getTicketsCount(): Promise<number> {
+  try {
+    const count = await gnoService.evaluateExpression(
+      REALM_PATH,
+      'GetAllTicketsCount()'
+    )
+    
+    const numberMatch = count.match(/\((\d+)\s+int\)/)
+    const parsedCount = numberMatch ? parseInt(numberMatch[1]) : 0
+    
+    if (isNaN(parsedCount)) {
+      console.error('Failed to parse tickets count:', count)
+      return 0
+    }
+    
+    return parsedCount
+  } catch (error) {
+    console.error('Error fetching tickets count:', error)
+    return 0
+  }
+}
+
+export async function getTicketsPage(page: number, pageSize: number): Promise<Ticket[]> {
+  try {
+    const ticketsData = await gnoService.evaluateExpression(
+      REALM_PATH,
+      `GetTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
+    )
+    
+    if (!ticketsData || !ticketsData.includes('string)')) {
+      console.error('No tickets data received')
+      return []
+    }
+
+    const dataMatch = ticketsData.match(/\("([^"]+)"\s+string\)/)
+    if (!dataMatch) {
+      console.error('Invalid tickets data format')
+      return []
+    }
+
+    return parseTicketsData(dataMatch[1])
+  } catch (error) {
+    console.error('Error fetching tickets page:', error)
+    return []
+  }
 } 
