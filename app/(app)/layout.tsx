@@ -38,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-4">
                 <Link 
                   href="/" 
-                  className="font-bold text-xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hover:from-purple-500 hover:to-pink-500 transition-colors"
+                  className="font-bold text-xl bg-gradient-to-r from-blue-600 via-navy-600 to-blue-600 bg-clip-text text-transparent transition-colors"
                 >
                   GnoXchange
                 </Link>
