@@ -35,30 +35,47 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <header className="relative z-10">
           <div className="flex h-16 items-center px-4 bg-gray-800 rounded-b-lg mb-2">
             <div className="flex w-full text-lg">
-              <div className="flex items-center gap-2">
-                <Link href="/" className="font-semibold">
+              <div className="flex items-center gap-4">
+                <Link 
+                  href="/" 
+                  className="font-bold text-xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hover:from-purple-500 hover:to-pink-500 transition-colors"
+                >
                   GnoXchange
                 </Link>
-                <Link href="/pools">
-                  <Button variant="ghost" className="bg-transparent text-base hover:bg-gray-700 hover:text-gray-400">
-                    Liquidity Pools
-                  </Button>
-                </Link>
-                <Link href="/tickets">
-                  <Button variant="ghost" className="bg-transparent text-base hover:bg-gray-700 hover:text-gray-400">
-                    Tickets
-                  </Button>
-                </Link>
-                <Link href="/nftmarket">
-                  <Button variant="ghost" className="bg-transparent text-base hover:bg-gray-700 hover:text-gray-400">
-                    NFT Marketplace
-                  </Button>
-                </Link>
-                <Link href="/ticket-history">
-                  <Button variant="ghost" className="bg-transparent text-base hover:bg-gray-700 hover:text-gray-400" >
-                    Ticket History
-                  </Button>
-                </Link>
+                <nav className="flex items-center gap-1 bg-gray-900/50 p-1 rounded-lg backdrop-blur-sm">
+                  <Link href="/pools">
+                    <Button 
+                      variant="ghost" 
+                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                    >
+                      Liquidity Pools
+                    </Button>
+                  </Link>
+                  <Link href="/tickets">
+                    <Button 
+                      variant="ghost" 
+                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                    >
+                      Tickets
+                    </Button>
+                  </Link>
+                  <Link href="/nftmarket">
+                    <Button 
+                      variant="ghost" 
+                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                    >
+                      NFT Marketplace
+                    </Button>
+                  </Link>
+                  <Link href="/ticket-history">
+                    <Button 
+                      variant="ghost" 
+                      className="text-sm font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                    >
+                      Ticket History
+                    </Button>
+                  </Link>
+                </nav>
               </div>
             </div>
           </div>
