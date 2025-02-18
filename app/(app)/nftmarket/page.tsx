@@ -3,9 +3,11 @@
 import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
 import { Asset, NFTDetails, Ticket } from '@/app/types'
 import { SearchBar } from '@/components/search-bar'
+import { SelectedNFT } from '@/components/selected-nft'
 import { SellNFT } from '@/components/sell-nft'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
 
@@ -22,12 +24,11 @@ export default function NFTMarketPage() {
     const calculatePageSize = () => {
       const cardHeight = 100
       const searchBarHeight = 40
-      const paginationHeight = 40
       const containerPadding = 48
       const cardGap = 8 
       const containerHeight = window.innerHeight - containerPadding
       
-      const availableHeight = containerHeight - searchBarHeight - paginationHeight - 40 
+      const availableHeight = containerHeight - searchBarHeight - 40 
       
       return Math.floor(availableHeight / (cardHeight + cardGap))
     }
@@ -93,19 +94,27 @@ export default function NFTMarketPage() {
 
   return (
     <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none h-screen">
-      <div className="flex justify-between items-center mb-4">
-        <SearchBar 
-          containerClassName="flex-grow mr-4"
-          placeholder="Search NFTs..."
-          onChange={(value) => {
-            console.log(value)
-          }}
-        />
+      <div className="flex justify-between items-center space-x-3">
+        <div className="flex items-center flex-1 space-x-3">
+          <SearchBar 
+            containerClassName="flex-1"
+            placeholder="Search NFTs..."
+            onChange={(value) => {
+              console.log(value)
+            }}
+          />
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalTickets / pageSize)}
+            onPageChange={setCurrentPage}
+            variant="minimal"
+          />
+        </div>
         <Button 
           onClick={() => setIsSellingNFT(true)}
-          className="bg-primary hover:bg-gray-900 h-9"
+          className="bg-gray-800 hover:bg-gray-900 h-9"
         >
-          Sell NFT
+          <CirclePlus name="plus" className="" />Sell NFT
         </Button>
       </div>
       <div className="flex gap-6 h-[calc(100vh-8rem)]">
@@ -130,12 +139,6 @@ export default function NFTMarketPage() {
               </Card>
             ))}
           </div>
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={Math.ceil(totalTickets / pageSize)}
-            onPageChange={setCurrentPage}
-            variant="minimal"
-          />
         </div>
 
         <div className="w-2/3">
@@ -145,50 +148,7 @@ export default function NFTMarketPage() {
               onSubmitAction={handleSellNFT}
             />
           ) : (
-            selectedTicket && (
-              <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
-                <h2 className="text-2xl font-bold mb-4">
-                  NFT Sale - {getNFTName(selectedTicket.assetIn.tokenHubPath || '')}
-                </h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                      <p className="text-sm text-gray-400">Creator</p>
-                      <p className="text-gray-300 truncate">{selectedTicket.creator}</p>
-                    </div>
-                    <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                      <p className="text-sm text-gray-400">Status</p>
-                      <p className="text-gray-300">{selectedTicket.status}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                    <p className="text-sm text-gray-400">NFT Path</p>
-                    <p className="text-gray-300 break-all">
-                      {selectedTicket.assetIn.tokenHubPath}
-                    </p>
-                  </div>
-                  <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                    <p className="text-sm text-gray-400">Price</p>
-                    <p className="text-gray-300">
-                      {formatAmount(selectedTicket.minAmountOut)} GNOT
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                      <p className="text-sm text-gray-400">Created At</p>
-                      <p className="text-gray-300">{selectedTicket.createdAt}</p>
-                    </div>
-                    <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-                      <p className="text-sm text-gray-400">Expires At</p>
-                      <p className="text-gray-300">{selectedTicket.expiresAt}</p>
-                    </div>
-                  </div>
-                  <Button className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md">
-                    Buy NFT
-                  </Button>
-                </div>
-              </Card>
-            )
+            selectedTicket && <SelectedNFT ticket={selectedTicket} />
           )}
         </div>
       </div>

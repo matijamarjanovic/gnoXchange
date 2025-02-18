@@ -24,12 +24,12 @@ export function PaginationControls({
   const pageSizeOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 5)
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 h-9 ${className}`}>
       <Button
         variant="ghost"
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
-        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400"
+        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400 h-9"
       >
         Previous
       </Button>
@@ -40,7 +40,7 @@ export function PaginationControls({
         variant="ghost"
         onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400"
+        className="bg-gray-800 hover:bg-gray-900 text-gray-400 hover:text-gray-400 h-9"
       >
         Next
       </Button>

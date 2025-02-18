@@ -56,9 +56,8 @@ export default function PoolsPage() {
     const calculatePageSize = () => {
       const cardHeight = 116 
       const searchBarHeight = 40
-      const paginationHeight = 40
       const containerHeight = window.innerHeight - 64 
-      return Math.floor((containerHeight - searchBarHeight - paginationHeight) / cardHeight)
+      return Math.floor((containerHeight - searchBarHeight) / cardHeight)
     }
 
     const newPageSize = calculatePageSize()
@@ -109,14 +108,22 @@ export default function PoolsPage() {
 
   return (
     <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none">
-      <div className="flex justify-between items-center">
-        <SearchBar 
-          containerClassName="flex-grow mr-4"
-          placeholder="Search pools..."
-          onChange={(value) => {
-            console.log(value)
-          }}
-        />
+      <div className="flex justify-between items-center space-x-3">
+        <div className="flex items-center flex-1 space-x-3">
+          <SearchBar 
+            containerClassName="flex-1"
+            placeholder="Search pools..."
+            onChange={(value) => {
+              console.log(value)
+            }}
+          />
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalPools / pageSize)}
+            onPageChange={setCurrentPage}
+            variant="minimal"
+          />
+        </div>
         <Button 
           onClick={() => setIsCreatingPool(true)}
           className="bg-gray-800 hover:bg-gray-900 h-9"
@@ -164,13 +171,6 @@ export default function PoolsPage() {
               </div>
             </Card>
           ))}
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={Math.ceil(totalPools / pageSize)}
-            onPageChange={setCurrentPage}
-            variant="minimal"
-            className="mt-8"
-          />
         </div>
 
         <div className="w-2/3">
