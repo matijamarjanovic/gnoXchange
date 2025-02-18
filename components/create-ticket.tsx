@@ -36,7 +36,6 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
   const [tokens, setTokens] = useState<TokenDetails[]>([])
   const [showLPTokens, setShowLPTokens] = useState(false)
 
-  // Hardcoded native coin
   const nativeCoin: Asset = {
     type: 'coin',
     denom: 'ugnot',
@@ -57,7 +56,6 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
     fetchTokens()
   }, [])
 
-  // Convert TokenDetails to Asset format
   const assets: Asset[] = [
     nativeCoin,
     ...tokens.map(token => ({
@@ -69,7 +67,6 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
     }))
   ]
 
-  // Filter assets based on the LP toggle
   const filteredAssets = assets.filter(asset => {
     const isLPToken = asset.symbol?.includes('LP-')
     return showLPTokens ? true : !isLPToken
