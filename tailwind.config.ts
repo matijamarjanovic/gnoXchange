@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
+
 
 export default {
     darkMode: ["class"],
@@ -61,10 +63,10 @@ export default {
   				ring: 'hsl(var(--sidebar-ring))'
   			},
         navy: {
-          600: '#1a365d',
-          700: '#153e75',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          600: '#0f2a4d',
+          700: '#0c2f65',
+          800: '#1a367f',
+          900: '#1a2e7a',
         },
   		}
   	},
@@ -74,5 +76,5 @@ export default {
   		sm: 'calc(var(--radius) - 4px)'
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;

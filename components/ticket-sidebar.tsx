@@ -35,7 +35,12 @@ export function TicketSidebar() {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-[400px] bg-gray-800 text-gray-300 border-gray-700">
+      <SheetContent 
+        className="w-[400px] bg-gray-800 text-gray-300 border-gray-700"
+        style={{
+          '--tw-backdrop-brightness': '0.8',
+        } as React.CSSProperties}
+      >
         <SheetHeader>
           <SheetTitle className="text-gray-200">Ticket Details</SheetTitle>
           <SheetDescription className="text-gray-400">
