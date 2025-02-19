@@ -1,7 +1,8 @@
 'use client'
 
-import { getAllTokens } from "@/app/queries/abci-queries"
-import { Asset, TokenDetails } from "@/app/types"
+import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { Asset, TokenBalance, TokenDetails } from "@/app/types"
+import { formatAmount } from "@/app/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -34,6 +35,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
   const [assetInType, setAssetInType] = useState<Asset | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
   const [tokens, setTokens] = useState<TokenDetails[]>([])
+  const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
   const [showLPTokens, setShowLPTokens] = useState(false)
 
   const nativeCoin: Asset = {
@@ -45,18 +47,36 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
   }
 
   useEffect(() => {
-    const fetchTokens = async () => {
+    const fetchData = async () => {
       try {
-        const fetchedTokens = await getAllTokens()
+        const [fetchedTokens, fetchedBalances] = await Promise.all([
+          getAllTokens(),
+          getUserTokenBalances("g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y") // TODO: Replace with actual user address
+        ])
+        
         setTokens(fetchedTokens)
+        setUserBalances(fetchedBalances)
       } catch (error) {
-        console.error('Failed to fetch tokens:', error)
+        console.error('Failed to fetch data:', error)
       }
     }
-    fetchTokens()
+    fetchData()
   }, [])
 
-  const assets: Asset[] = [
+  const assetsIn: Asset[] = [
+    nativeCoin,
+    ...tokens
+      .filter(token => userBalances.some(balance => balance.tokenKey === token.key))
+      .map(token => ({
+        type: 'token',
+        path: token.key,
+        name: token.name,
+        symbol: token.symbol,
+        decimals: token.decimals
+      }))
+  ]
+
+  const assetsOut: Asset[] = [
     nativeCoin,
     ...tokens.map(token => ({
       type: 'token',
@@ -67,10 +87,30 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
     }))
   ]
 
-  const filteredAssets = assets.filter(asset => {
+  const filteredAssetsIn = assetsIn.filter(asset => {
+    if (asset.type === 'coin') return true
     const isLPToken = asset.symbol?.includes('LP-')
     return showLPTokens ? true : !isLPToken
   })
+
+  const filteredAssetsOut = assetsOut
+    .filter(asset => {
+      if (asset.type === 'coin') return true
+      const isLPToken = asset.symbol?.includes('LP-')
+      return showLPTokens ? true : !isLPToken
+    })
+    .sort((a, b) => {
+      if (a.type === 'coin') return -1
+      if (b.type === 'coin') return 1
+
+      const balanceA = userBalances.find(balance => balance.tokenKey === a.path)
+      const balanceB = userBalances.find(balance => balance.tokenKey === b.path)
+      
+      if (balanceA && !balanceB) return -1
+      if (!balanceA && balanceB) return 1
+      
+      return (a.symbol || '').localeCompare(b.symbol || '')
+    })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,6 +126,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
             variant="default"
             pressed={showLPTokens}
             onPressedChange={setShowLPTokens}
+            size="sm"
             className="bg-gray-900 data-[state=on]:bg-navy-700 data-[state=on]:hover:bg-navy-800 hover:bg-gray-900 hover:text-gray-400"
           >
             <Coins className="h-4 w-4 mr-2" />
@@ -94,6 +135,7 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
           <Button 
             variant="ghost" 
             onClick={onCancelAction}
+            size="sm"
             className="bg-gray-900 text-gray-400 hover:bg-gray-900 hover:text-gray-400"
           >
             Cancel
@@ -119,15 +161,29 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
                 scrollbarWidth: 'none',
               }}
             >
-              {filteredAssets.map((asset, index) => (
-                <DropdownMenuItem 
-                  className="hover:bg-gray-800" 
-                  key={index} 
-                  onClick={() => setAssetInType(asset)}
-                >
-                  {asset.symbol || asset.name}
-                </DropdownMenuItem>
-              ))}
+              {filteredAssetsIn.map((asset, index) => {
+                const balance = userBalances.find(b => b.tokenKey === asset.path)
+                return (
+                  <DropdownMenuItem 
+                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    key={index} 
+                    onClick={() => {
+                      setAssetInType(asset)
+                      setCreateTicketForm(prev => ({
+                        ...prev, 
+                        tokenInKey: asset.type === 'coin' ? asset.denom! : asset.path!
+                      }))
+                    }}
+                  >
+                    <span>{asset.symbol || asset.name}</span>
+                    {balance && (
+                      <span className="text-xs text-gray-500">
+                        {formatAmount(balance.balance, asset.decimals)}
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                )
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
           <span className="text-gray-400">→</span>
@@ -148,11 +204,29 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
                 scrollbarWidth: 'none',
               }}
             >
-              {filteredAssets.map((asset, index) => (
-                <DropdownMenuItem className="hover:bg-gray-800" key={index} onClick={() => setAssetOutType(asset)}>
-                  {asset.symbol || asset.name}
-                </DropdownMenuItem>
-              ))}
+              {filteredAssetsOut.map((asset, index) => {
+                const balance = userBalances.find(b => b.tokenKey === asset.path)
+                return (
+                  <DropdownMenuItem 
+                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    key={index} 
+                    onClick={() => {
+                      setAssetOutType(asset)
+                      setCreateTicketForm(prev => ({
+                        ...prev, 
+                        tokenOutKey: asset.type === 'coin' ? asset.denom! : asset.path!
+                      }))
+                    }}
+                  >
+                    <span>{asset.symbol || asset.name}</span>
+                    {balance && (
+                      <span className="text-xs text-gray-500">
+                        {formatAmount(balance.balance, asset.decimals)}
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                )
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -85,7 +85,7 @@ export default function NFTMarketPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none h-screen">
+    <div className="container mx-auto p-4 flex flex-col gap-4 scrollbar-none">
       <div className="flex justify-between items-center space-x-3">
         <div className="flex items-center flex-1 space-x-3">
           <SearchBar 
@@ -109,7 +109,7 @@ export default function NFTMarketPage() {
           <CirclePlus name="plus" className="" />Sell NFT
         </Button>
       </div>
-      <div className="flex gap-6 h-[calc(100vh-8rem)]">
+      <div className="flex gap-6">
         <div className="w-1/3">
           <div className="space-y-2 mb-4">
             {tickets.map((ticket) => (

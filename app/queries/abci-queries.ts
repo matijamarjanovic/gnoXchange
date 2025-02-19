@@ -1,5 +1,5 @@
 import { GnoService } from '@/app/services/abci-service'
-import { Asset, PoolInfo, Ticket, TicketStatus, TokenDetails } from '@/app/types'
+import { Asset, NFTDetails, PoolInfo, Ticket, TicketStatus, TokenBalance, TokenDetails } from '@/app/types'
 
 const REALM_PATH = 'gno.land/r/matijamarjanovic/gnoxchange'
 const TOKENHUB_PATH = 'gno.land/r/matijamarjanovic/tokenhub'
@@ -419,6 +419,90 @@ export async function getAllTokens(): Promise<TokenDetails[]> {
       })
   } catch (error) {
     console.error('Error fetching tokens:', error)
+    return []
+  }
+}
+
+export async function getUserTokenBalances(userNameOrAddress: string): Promise<TokenBalance[]> {
+  try {
+    const balancesData = await gnoService.evaluateExpression(
+      TOKENHUB_PATH,
+      `GetUserTokenBalancesNonZero("${userNameOrAddress}")`,
+    )
+
+    const dataMatch = balancesData.match(/\("([^"]+)"\s+string\)/)
+    if (!dataMatch) {
+      console.error('Invalid token balances data format')
+      return []
+    }
+
+    const balancesStr = dataMatch[1]
+    
+    const balances = balancesStr
+      .split(',')
+      .filter(Boolean)
+      .map(tokenStr => {
+        const [prefix, tokenKey, balanceStr] = tokenStr.split(':')
+        
+        if (prefix !== 'Token' || !tokenKey || !balanceStr) {
+          console.error('Invalid token balance format:', tokenStr)
+          return null
+        }
+
+        return {
+          tokenKey,
+          balance: parseInt(balanceStr)
+        }
+      })
+      .filter((balance): balance is TokenBalance => balance !== null)
+
+    return balances;
+  } catch (error) {
+    console.error('Error fetching user token balances:', error)
+    return []
+  }
+}
+
+export async function getUserNFTBalances(userNameOrAddress: string): Promise<NFTDetails[]> {
+  try {
+    const nftsData = await gnoService.evaluateExpression(
+      TOKENHUB_PATH,
+      `GetUserNFTBalances("${userNameOrAddress}")`,
+    )
+
+    const dataMatch = nftsData.match(/\("([^"]+)"\s+string\)/)
+    if (!dataMatch) {
+      console.error('Invalid NFT balances data format')
+      return []
+    }
+
+    const nftsStr = dataMatch[1]
+    
+    return nftsStr
+      .split(',')
+      .filter(Boolean)
+      .map(nftStr => {
+        const [prefix, fullPath] = nftStr.split(':')
+        
+        if (prefix !== 'NFT' || !fullPath) {
+          console.error('Invalid NFT format:', nftStr)
+          return null
+        }
+
+        const pathParts = fullPath.split('.')
+        const tokenId = pathParts.pop() || ''
+        const collection = pathParts.join('.')
+
+        return {
+          key: fullPath,
+          collection,
+          tokenId,
+          uri: '' // since the grc721 recreation is on it's way, this remains TODO
+        }
+      })
+      .filter((nft): nft is NFTDetails => nft !== null)
+  } catch (error) {
+    console.error('Error fetching user NFT balances:', error)
     return []
   }
 } 

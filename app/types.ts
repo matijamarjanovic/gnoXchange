@@ -50,3 +50,8 @@ export interface PoolInfo {
   reserveB: number
   totalSupplyLP: number
 }
+
+export interface TokenBalance {
+  tokenKey: string
+  balance: number
+}
