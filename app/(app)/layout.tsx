@@ -57,20 +57,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </div>
                 </Link>
                 <nav className="flex items-center gap-1 bg-gray-900/50 p-1 rounded-lg backdrop-blur-sm">
-                  <Link href="/pools">
-                    <Button 
-                      variant="ghost" 
-                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
-                    >
-                      Liquidity Pools
-                    </Button>
-                  </Link>
                   <Link href="/tickets">
                     <Button 
                       variant="ghost" 
                       className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
-                      Tickets
+                      P2P Tickets
                     </Button>
                   </Link>
                   <Link href="/nftmarket">
@@ -79,6 +71,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
                     >
                       NFT Marketplace
+                    </Button>
+                  </Link>
+                  <Link href="/pools">
+                    <Button 
+                      variant="ghost" 
+                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                    >
+                      Liquidity Pools
                     </Button>
                   </Link>
                   <Link href="/ticket-history">
