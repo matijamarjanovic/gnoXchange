@@ -4,8 +4,17 @@ export class AdenaService {
   private static instance: AdenaService
   private currentAddress: string = ''
   private isInitialized: boolean = false
+  private readonly STORAGE_KEY = 'adena_wallet_address'
 
-  private constructor() {}
+  private constructor() {
+    if (typeof window !== 'undefined') {
+      const savedAddress = localStorage.getItem(this.STORAGE_KEY)
+      if (savedAddress) {
+        this.currentAddress = savedAddress
+        this.isInitialized = true
+      }
+    }
+  }
 
   static getInstance(): AdenaService {
     if (!AdenaService.instance) {
@@ -44,6 +53,7 @@ export class AdenaService {
 
       const account = await window.adena.GetAccount()
       this.currentAddress = account.data.address
+      localStorage.setItem(this.STORAGE_KEY, this.currentAddress)
       return this.currentAddress
     } catch (error) {
       console.error('Failed to connect to Adena wallet:', error)
@@ -68,6 +78,7 @@ export class AdenaService {
   async disconnect(): Promise<void> {
     this.isInitialized = false
     this.currentAddress = ''
+    localStorage.removeItem(this.STORAGE_KEY)
   }
 
   getAddress(): string {

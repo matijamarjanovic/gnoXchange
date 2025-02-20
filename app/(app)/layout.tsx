@@ -2,6 +2,8 @@
 
 import { AdenaService } from "@/app/services/adena-service"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Wallet } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
@@ -10,16 +12,23 @@ import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string>("")
 
-  const connectWallet = async () => {
+  const toggleWallet = async () => {
     const adenaService = AdenaService.getInstance()
-    const address = await adenaService.connect()
-    if (address) {
-      setWalletAddress(address.slice(0, 6) + "..." + address.slice(-4))
+    
+    if (walletAddress) {
+      await adenaService.disconnect()
+      setWalletAddress("")
+    } else {
+      const address = await adenaService.connect()
+      if (address) {
+        setWalletAddress(address.slice(0, 6) + "..." + address.slice(-4))
+      }
     }
   }
 
   return (
     <TicketSidebarProvider>
+      <TooltipProvider>
       <div className="min-h-screen flex-col bg-gray-700 text-gray-400">
         <div className="fixed inset-0 w-full h-full overflow-hidden opacity-10">
           {[...Array(50)].map((_, i) => (
@@ -106,14 +115,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </nav>
               </div>
               
-              <Button 
-                onClick={connectWallet}
-                variant="ghost" 
-                className="ml-auto text-base font-medium bg-gray-900/50 hover:bg-gray-800/50 hover:text-gray-300"
-              >
-                <Image src="/adena.png" alt="Adena Logo" width={20} height={20} className="mr-2" />
-                {walletAddress || "Connect Wallet"}
-              </Button>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={toggleWallet}
+                    variant="ghost" 
+                    className="ml-auto text-base font-medium bg-gray-900/50 hover:bg-gray-700/50 hover:text-gray-300"
+                  >
+                    <Wallet className="mr-2" size={20} />
+                    {walletAddress || "Connect Wallet"}
+                    <Image src="/adena.png" alt="Adena Logo" width={20} height={20} className="ml-2" />
+                  </Button>
+                </TooltipTrigger>
+                {walletAddress && (
+                  <TooltipContent className="bg-gray-800 text-gray-400 border-none">
+                    <p>Disconnect wallet</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </div>
           </div>
         </header>
@@ -123,6 +142,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      </TooltipProvider>
     </TicketSidebarProvider>
   )
 }
