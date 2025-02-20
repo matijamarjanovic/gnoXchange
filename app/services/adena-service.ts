@@ -4,7 +4,7 @@ export class AdenaService {
   private static instance: AdenaService
   private currentAddress: string = ''
   private isInitialized: boolean = false
-  private readonly STORAGE_KEY = 'adena_wallet_address'
+  private readonly STORAGE_KEY = 'walletAddress'
 
   private constructor() {
     if (typeof window !== 'undefined') {
@@ -13,6 +13,20 @@ export class AdenaService {
         this.currentAddress = savedAddress
         this.isInitialized = true
       }
+
+      setInterval(async () => {
+        if (window.adena && this.isInitialized) {
+          try {
+            const account = await window.adena.GetAccount()
+            const newAddress = account.data.address
+            if (newAddress !== this.currentAddress) {
+              this.handleAddressChange(newAddress)
+            }
+          } catch (error) {
+            console.error('Error checking wallet address:', error)
+          }
+        }
+      }, 1000)
     }
   }
 
@@ -40,6 +54,8 @@ export class AdenaService {
       return false
     }
   }
+
+  
 
   async connect(): Promise<string | null> {
     try {
@@ -87,6 +103,20 @@ export class AdenaService {
 
   isConnected(): boolean {
     return this.isInitialized && !!this.currentAddress
+  }
+
+  private handleAddressChange(newAddress: string): void {
+    const oldAddress = this.currentAddress
+    this.currentAddress = newAddress
+    localStorage.setItem(this.STORAGE_KEY, newAddress)
+    
+    // does nothing for now, might be useful
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('adenaAddressChanged', {
+        detail: { oldAddress, newAddress }
+      })
+      window.dispatchEvent(event)
+    }
   }
 }
 

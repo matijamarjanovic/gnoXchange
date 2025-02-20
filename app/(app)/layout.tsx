@@ -6,11 +6,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Wallet } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { usePathname } from 'next/navigation'
+import { useEffect } from "react"
+import { useLocalStorage } from 'react-use'
 import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [walletAddress, setWalletAddress] = useState<string>("")
+  const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
+  const pathname = usePathname()
 
   const toggleWallet = async () => {
     const adenaService = AdenaService.getInstance()
@@ -25,6 +28,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }
     }
   }
+
+  useEffect(() => {
+    const handleAddressChange = (event: CustomEvent) => {
+      const { newAddress } = event.detail
+      if (newAddress) {
+        setWalletAddress(newAddress.slice(0, 6) + "..." + newAddress.slice(-4))
+      } else {
+        setWalletAddress("")
+      }
+    }
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+    }
+  }, [setWalletAddress])
 
   return (
     <TicketSidebarProvider>
@@ -83,7 +102,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/tickets">
                     <Button 
                       variant="ghost" 
-                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className={`text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 ${
+                        pathname === '/tickets' ? 'bg-gray-800 text-gray-200' : ''
+                      }`}
                     >
                       P2P Tickets
                     </Button>
@@ -91,7 +112,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/nftmarket">
                     <Button 
                       variant="ghost" 
-                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className={`text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 ${
+                        pathname === '/nftmarket' ? 'bg-gray-800 text-gray-200' : ''
+                      }`}
                     >
                       NFT Marketplace
                     </Button>
@@ -99,7 +122,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/pools">
                     <Button 
                       variant="ghost" 
-                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className={`text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 ${
+                        pathname === '/pools' ? 'bg-gray-800 text-gray-200' : ''
+                      }`}
                     >
                       Liquidity Pools
                     </Button>
@@ -107,7 +132,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link href="/ticket-history">
                     <Button 
                       variant="ghost" 
-                      className="text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 data-[active]:bg-gray-800 data-[active]:text-gray-200"
+                      className={`text-base font-medium transition-colors hover:bg-gray-800/50 hover:text-gray-300 ${
+                        pathname === '/ticket-history' ? 'bg-gray-800 text-gray-200' : ''
+                      }`}
                     >
                       Ticket History
                     </Button>
@@ -128,7 +155,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                 </TooltipTrigger>
                 {walletAddress && (
-                  <TooltipContent className="bg-gray-800 text-gray-400 border-none">
+                  <TooltipContent className="bg-gray-900/50 text-red-400 border-none">
                     <p>Disconnect wallet</p>
                   </TooltipContent>
                 )}
