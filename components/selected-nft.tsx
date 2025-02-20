@@ -46,7 +46,7 @@ export function SelectedNFT({ ticket }: SelectedNFTProps) {
           </Button>
         </DialogTrigger>
         <DialogDescription/>
-        <DialogTitle> {getNFTName(ticket.assetIn.tokenHubPath || '')} </DialogTitle>
+        <DialogTitle/>
         <DialogContent className="bg-gray-800 border-gray-700 -p-4" showCloseButton={false}>
           <Image 
             src="/nft-mock.png" 
