@@ -1,6 +1,6 @@
 'use client'
 
-import { Ticket } from "@/app/types"
+import { Ticket } from "@/app/types/types"
 import { createContext, useContext, useState } from "react"
 
 interface TicketSidebarContextType {

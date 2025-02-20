@@ -1,7 +1,7 @@
 'use client'
 
 import { getAllTokens, getUserNFTBalances, getUserTokenBalances } from "@/app/queries/abci-queries"
-import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types"
+import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount, getNFTName } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
 import { Coins, DollarSign } from "lucide-react"

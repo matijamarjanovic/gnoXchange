@@ -1,6 +1,6 @@
 'use client'
 
-import { Ticket } from "@/app/types"
+import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { Card } from "@/components/ui/card"
 import { Handshake } from "lucide-react"

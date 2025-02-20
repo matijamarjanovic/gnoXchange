@@ -1,11 +1,11 @@
 import {
-    AlertCircle,
-    CheckCircle2,
-    CircleDot,
-    Clock,
-    XCircle
+  AlertCircle,
+  CheckCircle2,
+  CircleDot,
+  Clock,
+  XCircle
 } from 'lucide-react'
-import { TicketStatus } from './types'
+import { TicketStatus } from './types/types'
 
 export const formatDate = (dateStr: string | null) => {
   if (!dateStr) return ''

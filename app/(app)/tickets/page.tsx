@@ -1,7 +1,7 @@
 'use client'
 
 import { getOpenTicketsCount, getOpenTicketsPage } from '@/app/queries/abci-queries'
-import { Ticket } from '@/app/types'
+import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
 import { SearchBar } from '@/components/search-bar'

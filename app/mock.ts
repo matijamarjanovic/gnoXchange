@@ -1,4 +1,4 @@
-import { CoinDetails, NFTDetails, PoolInfo, Ticket, TokenDetails } from './types'
+import { CoinDetails, NFTDetails, PoolInfo, Ticket, TokenDetails } from './types/types'
 
 export const mockTickets: Ticket[] = [
   {

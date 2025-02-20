@@ -1,7 +1,7 @@
 'use client'
 
 import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
-import { Asset, TokenBalance, TokenDetails } from "@/app/types"
+import { Asset, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"

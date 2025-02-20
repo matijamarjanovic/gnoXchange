@@ -1,7 +1,7 @@
 'use client'
 
 import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
-import { Asset, NFTDetails, Ticket } from '@/app/types'
+import { Asset, NFTDetails, Ticket } from '@/app/types/types'
 import { formatAmount, getNFTName, getTicketStatusConfig } from '@/app/utils'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedNFT } from '@/components/selected-nft'

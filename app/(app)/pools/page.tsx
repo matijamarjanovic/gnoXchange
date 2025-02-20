@@ -1,7 +1,7 @@
 'use client'
 
 import { getPoolCount, getPoolsPage } from '@/app/queries/abci-queries'
-import { PoolInfo } from '@/app/types'
+import { PoolInfo } from '@/app/types/types'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'

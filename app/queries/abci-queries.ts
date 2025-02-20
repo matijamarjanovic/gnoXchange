@@ -1,5 +1,5 @@
 import { GnoService } from '@/app/services/abci-service'
-import { Asset, NFTDetails, PoolInfo, Ticket, TicketStatus, TokenBalance, TokenDetails } from '@/app/types'
+import { Asset, NFTDetails, PoolInfo, Ticket, TicketStatus, TokenBalance, TokenDetails } from '@/app/types/types'
 
 const REALM_PATH = 'gno.land/r/matijamarjanovic/gnoxchange'
 const TOKENHUB_PATH = 'gno.land/r/matijamarjanovic/tokenhub'

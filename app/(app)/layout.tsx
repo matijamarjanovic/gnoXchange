@@ -1,9 +1,23 @@
+'use client'
+
+import { AdenaService } from "@/app/services/adena-service"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const [walletAddress, setWalletAddress] = useState<string>("")
+
+  const connectWallet = async () => {
+    const adenaService = AdenaService.getInstance()
+    const address = await adenaService.connect()
+    if (address) {
+      setWalletAddress(address.slice(0, 6) + "..." + address.slice(-4))
+    }
+  }
+
   return (
     <TicketSidebarProvider>
       <div className="min-h-screen flex-col bg-gray-700 text-gray-400">
@@ -34,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <header className="relative z-10">
           <div className="flex h-16 items-center bg-gray-800 rounded-b-lg mb-2">
-            <div className="flex w-full text-lg">
+            <div className="flex w-full text-lg items-center justify-between px-4">
               <div className="flex items-center gap-4">
                 <Link 
                   href="/" 
@@ -91,6 +105,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 </nav>
               </div>
+              
+              <Button 
+                onClick={connectWallet}
+                variant="ghost" 
+                className="ml-auto text-base font-medium bg-gray-900/50 hover:bg-gray-800/50 hover:text-gray-300"
+              >
+                <Image src="/adena.png" alt="Adena Logo" width={20} height={20} className="mr-2" />
+                {walletAddress || "Connect Wallet"}
+              </Button>
             </div>
           </div>
         </header>

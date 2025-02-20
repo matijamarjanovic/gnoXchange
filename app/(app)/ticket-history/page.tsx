@@ -1,6 +1,6 @@
 'use client'
 import { getTicketsCount, getTicketsPage } from "@/app/queries/abci-queries";
-import { Ticket, TicketStatus } from '@/app/types';
+import { Ticket, TicketStatus } from '@/app/types/types';
 import { formatTime, getNFTName } from '@/app/utils';
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,4 @@
-import { PoolInfo } from "@/app/types"
+import { PoolInfo } from "@/app/types/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RefreshCw } from "lucide-react"
