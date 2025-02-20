@@ -3,9 +3,16 @@
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { Card } from "@/components/ui/card"
-import { ShoppingCart } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Ghost, ShoppingCart } from "lucide-react"
+import Image from "next/image"
 import { useState } from "react"
 import { Button } from "./ui/button"
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 
 interface SelectedNFTProps {
   ticket: Ticket
@@ -25,9 +32,32 @@ export function SelectedNFT({ ticket }: SelectedNFTProps) {
     setIsTrading(true)
     setTimeout(() => setIsTrading(false), 1000)
   }
-
+ // TODO: replace mock image with actual image when grc721 is implemented
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="absolute top-2 right-2 bg-transparent hover:bg-gray-700 hover:text-gray-300" 
+          >
+            <Ghost className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+        <DialogDescription/>
+        <DialogTitle> {getNFTName(ticket.assetIn.tokenHubPath || '')} </DialogTitle>
+        <DialogContent className="bg-gray-800 border-gray-700 -p-4" showCloseButton={false}>
+          <Image 
+            src="/nft-mock.png" 
+            alt="NFT Preview"
+            className="w-full h-auto object-cover rounded-lg"
+            width={400}
+            height={400}
+          />
+        </DialogContent>
+      </Dialog>
+
       <h2 className="text-lg mb-4">
         NFT Sale <span className="text-2xl ml-2 font-bold">
           {getNFTName(ticket.assetIn.tokenHubPath || '')} → {ticket.assetOut.symbol || ticket.assetOut.denom || 'GNOT'}

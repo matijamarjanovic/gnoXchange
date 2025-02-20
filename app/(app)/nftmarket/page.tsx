@@ -2,16 +2,16 @@
 
 import { getAllNFTTicketsPage, getOpenNFTTicketsCount } from '@/app/queries/abci-queries'
 import { Asset, NFTDetails, Ticket } from '@/app/types/types'
-import { formatAmount, getNFTName, getTicketStatusConfig } from '@/app/utils'
+import { formatAmount, getNFTName } from '@/app/utils'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedNFT } from '@/components/selected-nft'
 import { SellNFT } from '@/components/sell-nft'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CirclePlus } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
-
 export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
@@ -23,7 +23,7 @@ export default function NFTMarketPage() {
 
   useEffect(() => {
     const calculatePageSize = () => {
-      const cardHeight = 100
+      const cardHeight = 80
       const searchBarHeight = 40
       const containerPadding = 48
       const cardGap = 8 
@@ -123,20 +123,21 @@ export default function NFTMarketPage() {
                   setIsSellingNFT(false)
                 }}
               >
-                <h3 className="font-bold text-lg">NFT {getNFTName(ticket.assetIn.tokenHubPath || '')}</h3>
-                <div className="text-sm text-gray-400">
-                  <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
-                  <div className="flex items-center gap-1.5">
-                    {(() => {
-                      const statusConfig = getTicketStatusConfig(ticket.status)
-                        return (
-                        <>
-                          <span style={{ color: statusConfig.color }}>
-                            {statusConfig.label}
-                          </span>
-                        </>
-                      )
-                    })()}
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg">NFT {getNFTName(ticket.assetIn.tokenHubPath || '')}</h3>
+                    <div className="text-sm text-gray-400">
+                      <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
+                    </div>
+                  </div>
+                  <div className="h-16 w-16 rounded-md overflow-hidden">
+                    <Image 
+                      src="/nft-mock.png" 
+                      alt="NFT Preview"
+                      className="h-full w-full object-cover"
+                      width={64}
+                      height={64}
+                    />
                   </div>
                 </div>
               </Card>
