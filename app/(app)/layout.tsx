@@ -6,7 +6,7 @@ import Image from "next/image"
 import { useEffect } from "react"
 import { useLocalStorage } from 'react-use'
 import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
-import { Navbar } from "./components/Navbar"
+import { Navbar } from "../../components/nav-bar"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
@@ -61,11 +61,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }}
               >
                 <Image
-                  src="https://avatars.githubusercontent.com/u/75237105?s=280&v=4"
+                  src="/gnologo.png"
                   alt=""
                   width={100}
                   height={100}
-                  className="opacity-70"
+                  className=""
                 />
               </div>
             ))}
