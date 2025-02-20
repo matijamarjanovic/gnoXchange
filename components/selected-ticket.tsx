@@ -89,12 +89,7 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
         isOpen={showTradeDialog}
         onClose={() => setShowTradeDialog(false)}
         onConfirm={handleTradeConfirm}
-        sellingAmount={ticket.amountIn}
-        sellingToken={ticket.assetOut.symbol || ticket.assetOut.denom || ""}
-        receivingToken={ticket.assetIn.symbol || ticket.assetIn.denom || ""}
-        minimumAmount={ticket.minAmountOut}
-        sellingDecimals={ticket.assetOut.decimals ?? 6}
-        receivingDecimals={ticket.assetIn.decimals ?? 6}
+        ticket={ticket}
       />
     </Card>
   )

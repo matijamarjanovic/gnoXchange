@@ -1,3 +1,4 @@
+import { Ticket } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
 import { FormattedAmount } from "@/components/formatted-amount"
 import { Button } from "@/components/ui/button"
@@ -18,24 +19,14 @@ interface TradeConfirmationDialogProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (amount: number) => void
-  sellingAmount: number
-  sellingToken: string
-  receivingToken: string
-  minimumAmount: number
-  sellingDecimals?: number
-  receivingDecimals?: number
+  ticket: Ticket
 }
 
 export function TradeConfirmationDialog({
   isOpen,
   onClose,
   onConfirm,
-  sellingAmount,
-  sellingToken,
-  receivingToken,
-  minimumAmount,
-  sellingDecimals,
-  receivingDecimals,
+  ticket,
 }: TradeConfirmationDialogProps) {
   const [amount, setAmount] = React.useState<string>("")
   const { toast } = useToast()
@@ -56,11 +47,11 @@ export function TradeConfirmationDialog({
       return
     }
     
-    if (numAmount < minimumAmount) {
+    if (numAmount < ticket.minAmountOut) {
       toast({
         variant: "destructive",
         title: "Amount too low",
-        description: `Minimum amount required is ${minimumAmount}`
+        description: `Minimum amount required is ${ticket.minAmountOut}`
       })
       return
     }
@@ -79,13 +70,13 @@ export function TradeConfirmationDialog({
         <DialogHeader>
           <DialogTitle>Confirm Trade</DialogTitle>
           <DialogDescription>
-            How much would you like to pay for <FormattedAmount amount={formatAmount(sellingAmount, sellingDecimals ?? 6)} /> {receivingToken}?
-            (Minimum: <FormattedAmount amount={formatAmount(minimumAmount, receivingDecimals ?? 6)} /> {receivingToken})
+            How much would you like to pay for <FormattedAmount amount={formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 6)} /> {ticket.assetOut.symbol || ticket.assetOut.denom}?
+            (Minimum: <FormattedAmount amount={formatAmount(ticket.minAmountOut, ticket.assetOut.decimals ?? 6)} /> {ticket.assetOut.symbol || ticket.assetOut.denom})
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center py-4">
           <Label htmlFor="amount" className="text-left flex-1">
-            Amount of {sellingToken} <span className="text-[10px] text-gray-500">(in denom)</span>
+            Amount of {ticket.assetIn.symbol || ticket.assetIn.denom} <span className="text-[10px] text-gray-500">(in denom)</span>
           </Label>
           <div className="flex-1">
             <Input
@@ -95,7 +86,7 @@ export function TradeConfirmationDialog({
               onChange={(e) => setAmount(e.target.value)}
               className="flex-1 bg-gray-900 text-gray-400 border-none text-right"
               inputMode="decimal"
-              spacing={receivingDecimals ?? 6}
+              spacing={ticket.assetIn.decimals ?? 6}
             />
             <div className="sr-only" aria-live="polite">
               Current amount: {formattedInput}
