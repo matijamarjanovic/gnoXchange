@@ -10,7 +10,7 @@ export interface AdenaCallMessage {
   }
   
   export interface AdenaTransaction {
-    messages: AdenaCallMessage[]
+    messages: AdenaCallMessage[] | AdenaRunMessage[]
     gasFee: number
     gasWanted: number
   }

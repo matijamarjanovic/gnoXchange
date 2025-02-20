@@ -11,6 +11,8 @@ import { Navbar } from "../../components/nav-bar"
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
 
+  
+
   const toggleWallet = async () => {
     const adenaService = AdenaService.getInstance()
     

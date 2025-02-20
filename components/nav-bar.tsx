@@ -30,7 +30,7 @@ export function Navbar({ walletAddress, onWalletToggleAction }: NavbarProps) {
                 <Image
                   src="/gnoxchange.png"
                   alt=""
-                  width={240}
+                  width={160}
                   height={160}
                   className="mx-2"
                 />
@@ -65,7 +65,6 @@ export function Navbar({ walletAddress, onWalletToggleAction }: NavbarProps) {
               </TabsList>
             </Tabs>
           </div>
-          
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button 
