@@ -5,9 +5,16 @@ import { cn } from "@/lib/utils"
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input"> & { spacing?: number }>(
   ({ className, type, onChange, value, spacing = 3, ...props }, ref) => {
     const formatNumber = (value: string) => {
-      const cleanValue = value.replace(/\D/g, '')
+      const cleanValue = value.replace(/[^\d.]/g, '')
+      
+      const [integerPart, decimalPart] = cleanValue.split('.')
+      
       const regex = new RegExp(`\\B(?=(\\d{${spacing}})+(?!\\d))`, 'g')
-      return cleanValue.replace(regex, ' ')
+      const formattedInteger = integerPart.replace(regex, ' ')
+      
+      return decimalPart !== undefined 
+        ? `${formattedInteger}.${decimalPart}`
+        : formattedInteger
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

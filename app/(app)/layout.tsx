@@ -3,13 +3,14 @@
 import { AdenaService } from "@/app/services/adena-service"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import Image from "next/image"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useLocalStorage } from 'react-use'
 import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 import { Navbar } from "../../components/nav-bar"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
+  const [partialAddress, setPartialAddress] = useState<string>("")
 
   
 
@@ -19,10 +20,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (walletAddress) {
       await adenaService.disconnect()
       setWalletAddress("")
+      setPartialAddress("")
     } else {
       const address = await adenaService.connect()
       if (address) {
-        setWalletAddress(address.slice(0, 6) + "..." + address.slice(-4))
+        setWalletAddress(address)
+        setPartialAddress(address.slice(0, 6) + "..." + address.slice(-4))
       }
     }
   }
@@ -31,9 +34,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const handleAddressChange = (event: CustomEvent) => {
       const { newAddress } = event.detail
       if (newAddress) {
-        setWalletAddress(newAddress.slice(0, 6) + "..." + newAddress.slice(-4))
+        setPartialAddress(newAddress.slice(0, 6) + "..." + newAddress.slice(-4))
+        setWalletAddress(newAddress)
       } else {
         setWalletAddress("")
+        setPartialAddress("")
       }
     }
 
@@ -72,7 +77,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             ))}
           </div>
-          <Navbar walletAddress={walletAddress ?? ""} onWalletToggleAction={toggleWallet} />
+          <Navbar walletAddress={partialAddress ?? ""} onWalletToggleAction={toggleWallet} />
           <main className="relative z-10">
             <div>
               {children}

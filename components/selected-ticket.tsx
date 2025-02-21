@@ -1,20 +1,22 @@
 'use client'
 
+import { fulfillTicket } from "@/app/services/tx-service"
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
+import { FormattedAmount } from "@/components/formatted-amount"
 import { TradeConfirmationDialog } from "@/components/p2p-confirm-dialog"
 import { Card } from "@/components/ui/card"
+import { toast } from "@/hooks/use-toast"
 import { Handshake } from "lucide-react"
 import { useState } from "react"
 import { Button } from "./ui/button"
-import { FormattedAmount } from "@/components/formatted-amount"
 
 interface SelectedTicketProps {
   ticket: Ticket
 }
 
 export function SelectedTicket({ ticket }: SelectedTicketProps) {
-  const [isTrading, /*setIsTrading*/] = useState(false)
+  const [isTrading, setIsTrading] = useState(false)
   const [showTradeDialog, setShowTradeDialog] = useState(false)
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
@@ -23,10 +25,29 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
     setShowTradeDialog(true)
   }
 
-  const handleTradeConfirm = (amount: number) => {
-    console.log(`Proceeding with trade for amount: ${amount}`)
-    setShowTradeDialog(false)
-    // todo: execute trade using tx-services
+  const handleTradeConfirm = async (amount: number) => {
+    try {
+      setIsTrading(true)
+      const success = await fulfillTicket(ticket, amount)
+
+      if (success) {
+        toast({
+          title: "Trade successful",
+          description: "Your trade has been completed.",
+          variant: "default"
+        })
+      }
+    } catch (error) {
+      console.error('Trade failed:', error)
+      toast({
+        title: "Trade failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive"
+      })
+    } finally {
+      setIsTrading(false)
+      setShowTradeDialog(false)
+    }
   }
 
   return (
@@ -88,7 +109,7 @@ export function SelectedTicket({ ticket }: SelectedTicketProps) {
       <TradeConfirmationDialog
         isOpen={showTradeDialog}
         onClose={() => setShowTradeDialog(false)}
-        onConfirm={handleTradeConfirm}
+        onConfirm={(amount) => handleTradeConfirm(amount)}
         ticket={ticket}
       />
     </Card>

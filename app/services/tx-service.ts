@@ -1,5 +1,6 @@
 import { AdenaService } from "@/app/services/adena-service";
 import { AdenaRunMessage, GnoPackage } from "@/app/types/adena-types";
+import { Ticket } from "../types/types";
 
 export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
   const adenaService = AdenaService.getInstance();
@@ -11,7 +12,7 @@ export async function approveAllTokens(revokeApproval?: boolean): Promise<boolea
   if(revokeApproval){
     amount = 0
   } else {
-    amount = 9223372036854775807
+    amount = Number.MAX_SAFE_INTEGER
   }
 
   const gnoPackage: GnoPackage = {
@@ -57,15 +58,16 @@ func main() {
     type: "/vm.m_run",
     value: {
       caller: adenaService.getAddress(),
-      send: "0",
+      send: "",
       package: gnoPackage
     }
   };
 
+
   try {
     const response = await adenaService.runContract({
       messages: [runMessage],
-      gasFee: 1000000,
+      gasFee: 1,
       gasWanted: 200000000
     });
 
@@ -138,6 +140,71 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
     return response.code === 0;
   } catch (error) {
     console.error("Error approving token amounts:", error);
+    throw error;
+  }
+}
+
+export async function fulfillTicket(ticket: Ticket, amountOut: number): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  const gnoPackage: GnoPackage = {
+    name: "main",
+    path: "gno.land/r/demo/main",
+    files: [{
+      name: "main.gno",
+      body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/tokenhub"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+
+    if "${ticket.assetOut.type}" == "token" {
+        token := tokenhub.GetToken("${ticket.assetOut.path}")
+        if token == nil {
+            panic("token not found")
+        }
+        
+        teller := token.CallerTeller()
+        teller.Approve(gnoxchangeAddr, ${amountOut})
+    }
+
+    err := gnoxchange.FulfillTicket("${ticket.id}", ${amountOut})
+    if err != nil {
+        panic("error fulfilling ticket")
+    }
+}`
+    }]
+  };
+  
+  const runMessage: AdenaRunMessage = {
+    type: "/vm.m_run",
+    value: {
+      caller: adenaService.getAddress(),
+      send: ticket.assetOut.type === 'coin' ? amountOut.toString() : "0",
+      package: gnoPackage
+    }
+  };
+
+  try {
+    const response = await adenaService.runContract({
+      messages: [runMessage],
+      gasFee: 1,
+      gasWanted: 20000000 
+    });
+
+    console.log(response.message);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error fulfilling ticket:", error);
     throw error;
   }
 }

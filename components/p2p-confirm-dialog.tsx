@@ -37,7 +37,7 @@ export function TradeConfirmationDialog({
   }, [amount]);
 
   const handleConfirm = () => {
-    const numAmount = parseFloat(amount)
+    const numAmount = parseFloat(amount.replace(/\s+/g, ''))
     if (isNaN(numAmount)) {
       toast({
         variant: "destructive",
@@ -83,7 +83,7 @@ export function TradeConfirmationDialog({
               id="amount"
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => { setAmount(e.target.value)  }}
               className="flex-1 bg-gray-900 text-gray-400 border-none text-right"
               inputMode="decimal"
               spacing={ticket.assetIn.decimals ?? 6}
