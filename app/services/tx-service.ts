@@ -1,6 +1,10 @@
 import { AdenaService } from "@/app/services/adena-service";
-import { AdenaRunMessage, GnoPackage } from "@/app/types/adena-types";
+import { GnoPackage } from "@/app/types/adena-types";
+import { BroadcastType } from "@adena-wallet/sdk";
+import { Tx } from "@gnolang/tm2-js-client";
 import { Ticket } from "../types/types";
+import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
+
 
 export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
   const adenaService = AdenaService.getInstance();
@@ -65,7 +69,7 @@ func main() {
 
 
   try {
-    const response = await adenaService.runContract({
+    const response = await adenaService.signAndBroadcastTransaction({
       messages: [runMessage],
       gasFee: 1,
       gasWanted: 200000000
@@ -131,7 +135,7 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
   };
 
   try {
-    const response = await adenaService.runContract({
+    const response = await adenaService.signAndBroadcastTransaction({
       messages: [runMessage],
       gasFee: 1000000,
       gasWanted: 200000000
@@ -184,24 +188,33 @@ func main() {
 }`
     }]
   };
-  
-  const runMessage: AdenaRunMessage = {
-    type: "/vm.m_run",
-    value: {
-      caller: adenaService.getAddress(),
-      send: ticket.assetOut.type === 'coin' ? amountOut.toString() : "0",
-      package: gnoPackage
-    }
+
+  const transactionRequest = {
+    tx: Tx.create({
+      messages: [{
+        type: "/vm.m_run",
+        value: {
+          caller: adenaService.getAddress(),
+          send: ticket.assetOut.type === 'coin' ? amountOut.toString() : "0",
+          package: gnoPackage
+        }
+      }],
+      fee: {
+        gasFee: '3000000ugnot',
+        gasWanted: 60000000
+      },
+      memo: ""
+    }),
+    broadcastType: BroadcastType.SYNC,
   };
 
   try {
-    const response = await adenaService.runContract({
-      messages: [runMessage],
-      gasFee: 1,
-      gasWanted: 20000000 
-    });
-
-    console.log(response.message);
+    // First sign the transaction
+    const signedTx = await adenaService.getSdk().signTransaction(transactionRequest);
+    
+    // Then broadcast it
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    console.log('Transaction response:', response);
     return response.code === 0;
   } catch (error) {
     console.error("Error fulfilling ticket:", error);

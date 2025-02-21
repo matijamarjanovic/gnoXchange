@@ -1,141 +1,90 @@
-import { AdenaAccount, AdenaResponse, AdenaRunResponse, AdenaTransaction } from '@/app/types/adena-types'
+import { AdenaSDK } from '@adena-wallet/sdk';
 
 export class AdenaService {
-  private static instance: AdenaService
-  private currentAddress: string = ''
-  private isInitialized: boolean = false
-  private readonly STORAGE_KEY = 'walletAddress'
-  private pollInterval: NodeJS.Timeout | null = null
+  private static instance: AdenaService;
+  private sdk: AdenaSDK;
+  private readonly WALLET_ADDRESS_KEY = 'walletAddress';
+  private readonly NETWORK_KEY = 'network';
 
   private constructor() {
-    if (typeof window !== 'undefined') {
-      const savedAddress = localStorage.getItem(this.STORAGE_KEY)
-      if (savedAddress) {
-        this.currentAddress = savedAddress
-        this.isInitialized = true
-      }
-    }
+    this.sdk = AdenaSDK.createAdenaWallet();
   }
 
-  static getInstance(): AdenaService {
+  public static getInstance(): AdenaService {
     if (!AdenaService.instance) {
-      AdenaService.instance = new AdenaService()
+      AdenaService.instance = new AdenaService();
     }
-    return AdenaService.instance
+    return AdenaService.instance;
   }
 
-  async initialize(): Promise<boolean> {
+  public async connectWallet(): Promise<string> {
     try {
-      if (typeof window === 'undefined') return false
-
-      if (!window.adena) {
-        window.open("https://adena.app/", "_blank")
-        return false
-      }
-
-      await window.adena.AddEstablish("gnoxchange")
-      this.isInitialized = true
+      await this.sdk.connectWallet();
       
-      window.adena.On("changedAccount", (address: string) => {
-        this.handleAddressChange(address)
-      })
-            
-      return true
+      this.sdk.onChangeAccount({ callback: (address: string) => {
+        if (address) {
+          this.updateStoredAddress(address);
+        } else {
+          this.clearStoredAddress();
+        }
+      }});
+
+      const account = await this.sdk.getAccount();
+      
+      if (account && account.data?.address) {
+        this.updateStoredAddress(account.data.address);
+        return account.data.address;
+      }
+      throw new Error('No address found after connection');
     } catch (error) {
-      console.error('Failed to initialize Adena wallet:', error)
-      return false
+      console.error('Failed to connect wallet:', error);
+      throw error;
     }
   }
 
-  async connect(): Promise<string | null> {
+  public async disconnectWallet(): Promise<void> {
     try {
-      if (!this.isInitialized) {
-        const initialized = await this.initialize()
-        if (!initialized) return null;
-      }
-
-      if (!window.adena) {
-        throw new Error('Adena wallet not found')
-      }
-
-      const account = await window.adena.GetAccount()
-      const newAddress = account.data.address
-      
-      this.handleAddressChange(newAddress)
-            
-      return this.currentAddress
+      await this.sdk.disconnectWallet();
+      this.clearStoredAddress();
     } catch (error) {
-      console.error('Failed to connect to Adena wallet:', error)
-      return null
+      console.error('Failed to disconnect wallet:', error);
+      throw error;
     }
   }
 
-  async callContract(tx: AdenaTransaction): Promise<AdenaResponse> {
-    if (!window.adena) {
-      throw new Error('Wallet not initialized')
-    }
-    return await window.adena.DoContract(tx) as AdenaResponse
+  private updateStoredAddress(address: string): void {
+    localStorage.setItem(this.WALLET_ADDRESS_KEY, address);
+    const event = new CustomEvent('adenaAddressChanged', {
+      detail: { newAddress: address }
+    });
+    window.dispatchEvent(event);
   }
 
-  async runContract(tx: AdenaTransaction): Promise<AdenaRunResponse> {
-    if (!window.adena) {
-      throw new Error('Wallet not initialized')
-    }
-    return await window.adena.DoContract(tx) as AdenaRunResponse
+  private clearStoredAddress(): void {
+    localStorage.removeItem(this.WALLET_ADDRESS_KEY);
+    const event = new CustomEvent('adenaAddressChanged', {
+      detail: { newAddress: null }
+    });
+    window.dispatchEvent(event);
   }
 
-  async disconnect(): Promise<void> {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval)
-      this.pollInterval = null
-    }
-    
-    this.isInitialized = false
-    this.currentAddress = ''
-    localStorage.removeItem(this.STORAGE_KEY)
+  public getStoredAddress(): string | null {
+    return localStorage.getItem(this.WALLET_ADDRESS_KEY);
   }
 
-  getAddress(): string {
-    return this.currentAddress
+  public getStoredNetwork(): string | null {
+    return localStorage.getItem(this.NETWORK_KEY);
   }
 
-  getAccount(): Promise<AdenaAccount> {
-    return window.adena?.GetAccount() as Promise<AdenaAccount>
+  public isConnected(): boolean {
+    return this.getStoredAddress() !== null;
   }
 
-  isConnected(): boolean {
-    return this.isInitialized && !!this.currentAddress
+  public getAddress(): string {
+    return this.getStoredAddress() || '';
   }
 
-  private handleAddressChange(newAddress: string): void {
-    const oldAddress = this.currentAddress
-    this.currentAddress = newAddress
-    localStorage.setItem(this.STORAGE_KEY, newAddress)
-    
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('adenaAddressChanged', {
-        detail: { oldAddress, newAddress }
-      })
-      window.dispatchEvent(event)
-    }
-  }
-
-  async ensureWalletReady(): Promise<boolean> {
-    if (!this.isConnected()) {
-      const address = await this.connect()
-      return !!address
-    }
-    return true
+  public getSdk(): AdenaSDK {
+    return this.sdk;
   }
 }
-
-declare global {
-  interface Window {
-    adena?: {
-      AddEstablish: (appName: string) => Promise<void>
-      GetAccount: () => Promise<AdenaAccount> 
-      DoContract: (tx: AdenaTransaction) => Promise<AdenaResponse | AdenaRunResponse>
-      On: (event: string, callback: (address: string) => void) => void
-    }
-  }
-} 

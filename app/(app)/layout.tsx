@@ -18,11 +18,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const adenaService = AdenaService.getInstance()
     
     if (walletAddress) {
-      await adenaService.disconnect()
+      await adenaService.disconnectWallet()
       setWalletAddress("")
       setPartialAddress("")
     } else {
-      const address = await adenaService.connect()
+      const address = await adenaService.connectWallet()
       if (address) {
         setWalletAddress(address)
         setPartialAddress(address.slice(0, 6) + "..." + address.slice(-4))

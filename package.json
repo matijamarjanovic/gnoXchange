@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@adena-wallet/sdk": "^0.0.6",
     "@bufbuild/protobuf": "^2.2.3",
     "@gnolang/gno-js-client": "^1.3.2",
     "@gnolang/tm2-js-client": "^1.2.4",
