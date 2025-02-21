@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Filter } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useLocalStorage } from 'react-use';
 import { PaginationControls } from '../../../components/pagination-controls';
 import { TicketSidebar } from "../../../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
@@ -19,23 +20,15 @@ export default function TicketHistory() {
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all');
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(() => {
-    const storedSize = localStorage.getItem(PAGE_SIZE_KEY)
-    return storedSize ? parseInt(storedSize) : 25
-  })
+  const [pageSize, setPageSize] = useLocalStorage(PAGE_SIZE_KEY, 25)
   const [isLoading, setIsLoading] = useState(true)
-
-
-  useEffect(() => { 
-    localStorage.setItem(PAGE_SIZE_KEY, pageSize.toString())
-  }, [pageSize])
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         const [count, ticketsData] = await Promise.all([
           getTicketsCount(),
-          getTicketsPage(currentPage, pageSize)
+          getTicketsPage(currentPage, pageSize || 25)
         ])
         
         setTotalTickets(count)
@@ -61,7 +54,7 @@ export default function TicketHistory() {
     filterStatus === 'all' || ticket.status === filterStatus
   );
 
-  const totalPages = Math.ceil(totalTickets / pageSize)
+  const totalPages = Math.ceil(totalTickets / (pageSize || 25))
 
   const handleTicketClick = (ticket: Ticket) => {
     setSelectedTicket(ticket)
