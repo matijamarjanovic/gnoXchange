@@ -312,6 +312,7 @@ func main() {${approvalCode}
           })
         )
         .fee(1000000, 'ugnot')
+        .gasWanted(200000000)
         .memo("")
         .build();
     }
