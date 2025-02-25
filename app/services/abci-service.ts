@@ -19,7 +19,6 @@ export class GnoService {
     }
   }
 
-  // Get package data using evaluate expression
   async getPackageData(packagePath: string, expression: string) {
     try {
       const result = await this.provider.evaluateExpression(
@@ -33,7 +32,6 @@ export class GnoService {
     }
   }
 
-  // Get package functions
   async getPackageFunctions(packagePath: string) {
     try {
       const signatures = await this.provider.getFunctionSignatures(packagePath)
@@ -44,7 +42,6 @@ export class GnoService {
     }
   }
 
-  // Get rendered output from a package
   async getRender(packagePath: string, path: string) {
     try {
       const rendered = await this.provider.getRenderOutput(packagePath, path)
@@ -55,7 +52,6 @@ export class GnoService {
     }
   }
 
-  // Get package source code
   async getPackageSource(packagePath: string) {
     try {
       const source = await this.provider.getFileContent(packagePath)

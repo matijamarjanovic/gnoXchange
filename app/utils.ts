@@ -44,6 +44,7 @@ export const getTicketStatusConfig = (status: TicketStatus) => {
         icon: Clock,
         color: 'text-blue-400',
         bgColor: 'bg-blue-900/50',
+        hoverBg: 'hover:bg-blue-900/70',
         label: 'Open'
       }
     case 'fulfilled':
@@ -51,27 +52,31 @@ export const getTicketStatusConfig = (status: TicketStatus) => {
         icon: CheckCircle2,
         color: 'text-green-400',
         bgColor: 'bg-green-900/50',
+        hoverBg: 'hover:bg-green-900/70',
         label: 'Fulfilled'
       }
     case 'cancelled':
       return {
         icon: XCircle,
-        color: 'text-red-400',
-        bgColor: 'bg-red-900/50',
+        color: 'text-yellow-400',
+        bgColor: 'bg-yellow-900/50',
+        hoverBg: 'hover:bg-yellow-900/70',
         label: 'Cancelled'
       }
     case 'expired':
       return {
         icon: AlertCircle,
-        color: 'text-yellow-400',
-        bgColor: 'bg-yellow-900/50',
+        color: 'text-red-400',
+        bgColor: 'bg-red-900/50',
+        hoverBg: 'hover:bg-red-900/70',
         label: 'Expired'
       }
     case 'all':
       return {
         icon: CircleDot,
         color: 'text-gray-400',
-        bgColor: 'bg-gray-900/50',
+        bgColor: 'bg-gray-800',
+        hoverBg: 'hover:bg-gray-900 hover:text-gray-300',
         label: 'All'
       }
   }

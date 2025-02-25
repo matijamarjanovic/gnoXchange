@@ -1,6 +1,6 @@
 'use client'
 
-import { getPoolCount, getPoolsPage } from '@/app/queries/abci-queries'
+import { getPoolsPage } from '@/app/queries/abci-queries'
 import { PoolInfo } from '@/app/types/types'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreatePool } from '../../../components/create-pool'
@@ -26,33 +27,16 @@ interface CreatePoolForm {
 
 export default function PoolsPage() {
   const [pools, setPools] = useState<PoolInfo[]>([])
+  const [filteredPools, setFilteredPools] = useState<PoolInfo[]>([])
   const [selectedPool, setSelectedPool] = useState<PoolInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isCreatingPool, setIsCreatingPool] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
-  const [totalPools, setTotalPools] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [fuse, setFuse] = useState<Fuse<PoolInfo> | null>(null)
 
   useEffect(() => {
-    const fetchPoolsData = async () => {
-      try {
-        const count = await getPoolCount()
-        setTotalPools(count)
-
-        const poolsArray = await getPoolsPage(currentPage, pageSize)
-        setPools(poolsArray)
-        
-        if (poolsArray.length > 0 && !selectedPool) {
-          setSelectedPool(poolsArray[0])
-        }
-        
-        setIsLoading(false)
-      } catch (error) {
-        console.error('Error fetching pools data:', error)
-        setIsLoading(false)
-      }
-    }
-
     const calculatePageSize = () => {
       const cardHeight = 116 
       const searchBarHeight = 40
@@ -60,20 +44,71 @@ export default function PoolsPage() {
       return Math.floor((containerHeight - searchBarHeight) / cardHeight)
     }
 
-    const newPageSize = calculatePageSize()
-    setPageSize(newPageSize)
-    fetchPoolsData()
+    const fetchPools = async () => {
+      try {
+        // Fetch all pools at once
+        const poolsData = await getPoolsPage(1, 10000)
+        
+        setPools(poolsData)
+        setFilteredPools(poolsData)
+        setSelectedPool(poolsData[0] || null)
+
+        // Initialize Fuse instance
+        const fuseInstance = new Fuse(poolsData, {
+          keys: [
+            'tokenAInfo.key',
+            'tokenAInfo.name',
+            'tokenBInfo.key',
+            'tokenBInfo.name',
+          ],
+          threshold: 0.4,
+          shouldSort: true,
+          minMatchCharLength: 2
+        })
+        setFuse(fuseInstance)
+      } catch (error) {
+        console.error('Error fetching pools:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    const initializePools = () => {
+      const calculatedPageSize = calculatePageSize()
+      setPageSize(calculatedPageSize)
+      fetchPools()
+    }
+
+    initializePools()
 
     const handleResize = () => {
-      const calculatedPageSize = calculatePageSize()
-      if (calculatedPageSize !== pageSize) {
-        setPageSize(calculatedPageSize)
+      const newPageSize = calculatePageSize()
+      if (newPageSize !== pageSize) {
+        setPageSize(newPageSize)
       }
     }
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [currentPage, pageSize, selectedPool])
+  }, [pageSize])
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredPools(pools)
+      return
+    }
+
+    if (fuse) {
+      const results = fuse.search(searchQuery)
+      setFilteredPools(results.map(result => result.item))
+    }
+  }, [searchQuery, pools, fuse])
+
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return filteredPools.slice(startIndex, endIndex)
+  }
 
   const handleCreatePool = async (formData: CreatePoolForm) => {
     try {
@@ -114,12 +149,13 @@ export default function PoolsPage() {
             containerClassName="flex-1"
             placeholder="Search pools..."
             onChange={(value) => {
-              console.log(value)
+              setSearchQuery(value)
+              setCurrentPage(1) 
             }}
           />
           <PaginationControls
             currentPage={currentPage}
-            totalPages={Math.ceil(totalPools / pageSize)}
+            totalPages={Math.ceil(filteredPools.length / pageSize)}
             onPageChange={setCurrentPage}
             variant="minimal"
           />
@@ -128,12 +164,12 @@ export default function PoolsPage() {
           onClick={() => setIsCreatingPool(true)}
           className="bg-gray-800 hover:bg-gray-900 h-9"
         >
-          <CirclePlus name="plus" className="" /> Create Pool
+          <CirclePlus className="" /> Create Pool
         </Button>
       </div>
       <div className="flex gap-6">
         <div className="w-1/3 space-y-4">
-          {pools.map((pool) => (
+          {getCurrentPageItems().map((pool) => (
             <Card
               key={pool.poolKey}
               className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
@@ -172,7 +208,6 @@ export default function PoolsPage() {
             </Card>
           ))}
         </div>
-
         <div className="w-2/3">
           {renderRightCard()}
         </div>

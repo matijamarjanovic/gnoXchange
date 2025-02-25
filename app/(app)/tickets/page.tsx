@@ -1,6 +1,6 @@
 'use client'
 
-import { getOpenTicketsCount, getOpenTicketsPage } from '@/app/queries/abci-queries'
+import { getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
@@ -8,6 +8,7 @@ import { SearchBar } from '@/components/search-bar'
 import { SelectedTicket } from '@/components/selected-ticket'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
@@ -22,12 +23,14 @@ interface CreateTicketForm {
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isCreatingTicket, setIsCreatingTicket] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
-  const [totalTickets, setTotalTickets] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -38,18 +41,31 @@ export default function TicketsPage() {
     }
 
     const fetchTickets = async () => {
-      const calculatedPageSize = calculatePageSize()
-      setPageSize(calculatedPageSize)
-      
       try {
-        const [ticketsCount, ticketsData] = await Promise.all([
-          getOpenTicketsCount(),
-          getOpenTicketsPage(currentPage, calculatedPageSize)
-        ])
+        const ticketsData = await getOpenTicketsPage(1, 10000)
         
-        setTotalTickets(ticketsCount)
         setTickets(ticketsData)
+        setFilteredTickets(ticketsData)
         setSelectedTicket(ticketsData[0] || null)
+
+        const fuseInstance = new Fuse(ticketsData, {
+          keys: [
+            'assetIn.tokenHubPath',
+            'assetIn.name',
+            'assetIn.symbol',
+            'assetIn.type',
+            'assetOut.tokenHubPath',
+            'assetOut.name',
+            'assetOut.symbol',
+            'assetOut.type',
+            'id',
+            'creator'
+          ],
+          threshold: 0.4,
+          shouldSort: true,
+          minMatchCharLength: 2
+        })
+        setFuse(fuseInstance)
       } catch (error) {
         console.error('Error fetching tickets:', error)
       } finally {
@@ -57,7 +73,13 @@ export default function TicketsPage() {
       }
     }
 
-    fetchTickets()
+    const initializeTickets = () => {
+      const calculatedPageSize = calculatePageSize()
+      setPageSize(calculatedPageSize)
+      fetchTickets()
+    }
+
+    initializeTickets()
 
     const handleResize = () => {
       const newPageSize = calculatePageSize()
@@ -68,7 +90,25 @@ export default function TicketsPage() {
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [currentPage, pageSize])
+  }, [pageSize])
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredTickets(tickets)
+      return
+    }
+
+    if (fuse) {
+      const results = fuse.search(searchQuery)
+      setFilteredTickets(results.map(result => result.item))
+    }
+  }, [searchQuery, tickets, fuse])
+
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return filteredTickets.slice(startIndex, endIndex)
+  }
 
   const handleCreateTicket = async (form: CreateTicketForm) => {
     try {
@@ -104,12 +144,13 @@ export default function TicketsPage() {
             containerClassName="flex-1"
             placeholder="Search tickets..."
             onChange={(value) => {
-              console.log(value)
+              setSearchQuery(value)
+              setCurrentPage(1) 
             }}
           />
           <PaginationControls
             currentPage={currentPage}
-            totalPages={Math.ceil(totalTickets / pageSize)}
+            totalPages={Math.ceil(filteredTickets.length / pageSize)}
             onPageChange={setCurrentPage}
             variant="minimal"
           />
@@ -123,7 +164,7 @@ export default function TicketsPage() {
       </div>
       <div className="flex gap-6">
         <div className="w-1/3 space-y-3">
-          {tickets.map((ticket) => (
+          {getCurrentPageItems().map((ticket) => (
             <Card
               key={ticket.id}
               className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
