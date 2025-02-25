@@ -5,6 +5,7 @@ export class AdenaService {
   private sdk: AdenaSDK;
   private readonly WALLET_ADDRESS_KEY = 'walletAddress';
   private readonly NETWORK_KEY = 'network';
+  private isLoading: boolean = false;
 
   private constructor() {
     this.sdk = AdenaSDK.createAdenaWallet();
@@ -17,8 +18,17 @@ export class AdenaService {
     return AdenaService.instance;
   }
 
+  private setLoading(loading: boolean) {
+    this.isLoading = loading;
+    const event = new CustomEvent('adenaLoadingChanged', {
+      detail: { isLoading: loading }
+    });
+    window.dispatchEvent(event);
+  }
+
   public async connectWallet(): Promise<string> {
     try {
+      this.setLoading(true);
       await this.sdk.connectWallet();
       
       this.sdk.onChangeAccount({ callback: (address: string) => {
@@ -40,16 +50,21 @@ export class AdenaService {
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       throw error;
+    } finally {
+      this.setLoading(false);
     }
   }
 
   public async disconnectWallet(): Promise<void> {
     try {
+      this.setLoading(true);
       await this.sdk.disconnectWallet();
       this.clearStoredAddress();
     } catch (error) {
       console.error('Failed to disconnect wallet:', error);
       throw error;
+    } finally {
+      this.setLoading(false);
     }
   }
 

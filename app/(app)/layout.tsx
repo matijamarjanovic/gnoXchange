@@ -4,42 +4,45 @@ import { AdenaService } from "@/app/services/adena-service"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { seededRandom } from '@/utils/random'
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useLocalStorage } from 'react-use'
 import { Navbar } from "../../components/nav-bar"
 import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [isConnecting, setIsConnecting] = useState(false)
   const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
-  const [partialAddress, setPartialAddress] = useState<string>("")
 
-  // Use a constant seed value
-  const random = seededRandom(123)
-  
-  // Pre-calculate random positions for consistent rendering
-  const logoPositions = Array.from({ length: 50 }, () => ({
-    transform: `rotate(${random() * 360}deg)`,
-    left: `${random() * 100}%`,
-    top: `${random() * 100}%`,
-    width: '100px',
-    height: '100px',
-    mask: 'radial-gradient(circle, black 30%, transparent 70%)',
-    WebkitMask: 'radial-gradient(circle, black 30%, transparent 70%)',
-  }))
+  const logoPositions = useMemo(() => {
+    const random = seededRandom(123)
+    return Array.from({ length: 50 }, () => ({
+      transform: `rotate(${random() * 360}deg)`,
+      left: `${random() * 100}%`,
+      top: `${random() * 100}%`,
+      width: '100px',
+      height: '100px',
+      mask: 'radial-gradient(circle, black 30%, transparent 70%)',
+      WebkitMask: 'radial-gradient(circle, black 30%, transparent 70%)',
+    }))
+  }, [])
 
   const toggleWallet = async () => {
     const adenaService = AdenaService.getInstance()
+    setIsConnecting(true)
     
-    if (walletAddress) {
-      await adenaService.disconnectWallet()
-      setWalletAddress("")
-      setPartialAddress("")
-    } else {
-      const address = await adenaService.connectWallet()
-      if (address) {
-        setWalletAddress(address)
-        setPartialAddress(address.slice(0, 6) + "..." + address.slice(-4))
+    try {
+      if (walletAddress) {
+        await adenaService.disconnectWallet()
+        setWalletAddress("")
+      } else {
+        const address = await adenaService.connectWallet()
+        if (address) {
+          setWalletAddress(address)
+        }
       }
+    } finally {
+      setIsConnecting(false)
     }
   }
 
@@ -47,17 +50,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const handleAddressChange = (event: CustomEvent) => {
       const { newAddress } = event.detail
       if (newAddress) {
-        setPartialAddress(newAddress.slice(0, 6) + "..." + newAddress.slice(-4))
         setWalletAddress(newAddress)
       } else {
         setWalletAddress("")
-        setPartialAddress("")
       }
     }
 
+    const handleLoadingChange = (event: CustomEvent) => {
+      setIsConnecting(event.detail.isLoading)
+    }
+
     window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+    window.addEventListener('adenaLoadingChanged', handleLoadingChange as EventListener)
+    setIsLoading(false)
+    
     return () => {
       window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+      window.removeEventListener('adenaLoadingChanged', handleLoadingChange as EventListener)
     }
   }, [walletAddress, setWalletAddress])
 
@@ -82,7 +91,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             ))}
           </div>
-          <Navbar walletAddress={partialAddress ?? ""} onWalletToggleAction={toggleWallet} />
+          <Navbar 
+            walletAddress={isLoading ? "" : walletAddress ?? ""} 
+            onWalletToggleAction={toggleWallet}
+            isLoading={isLoading || isConnecting}
+          />
           <main className="relative z-10">
             <div>
               {children}
