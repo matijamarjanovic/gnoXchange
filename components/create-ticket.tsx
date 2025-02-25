@@ -212,16 +212,27 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
             >
               {filteredAssetsIn.map((asset, index) => {
                 const balance = userBalances.find(b => b.tokenKey === asset.path)
+                const isDisabled = assetOutType && (
+                  (asset.type === 'coin' && assetOutType.type === 'coin') ||
+                  (asset.type === 'token' && asset.path === assetOutType.path)
+                )
                 return (
                   <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    className={`flex justify-between items-center ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-gray-800'
+                    }`} 
                     key={index} 
+                    disabled={isDisabled!}
                     onClick={() => {
-                      setAssetInType(asset)
-                      setCreateTicketForm(prev => ({
-                        ...prev, 
-                        tokenInKey: asset.type === 'coin' ? asset.denom! : asset.path!
-                      }))
+                      if (!isDisabled) {
+                        setAssetInType(asset)
+                        setCreateTicketForm(prev => ({
+                          ...prev, 
+                          tokenInKey: asset.type === 'coin' ? asset.denom! : asset.path!
+                        }))
+                      }
                     }}
                   >
                     <span>{asset.symbol || asset.name}</span>
@@ -255,16 +266,27 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
             >
               {filteredAssetsOut.map((asset, index) => {
                 const balance = userBalances.find(b => b.tokenKey === asset.path)
+                const isDisabled = assetInType && (
+                  (asset.type === 'coin' && assetInType.type === 'coin') ||
+                  (asset.type === 'token' && asset.path === assetInType.path)
+                )
                 return (
                   <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    className={`flex justify-between items-center ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-gray-800'
+                    }`} 
                     key={index} 
+                    disabled={isDisabled!}
                     onClick={() => {
-                      setAssetOutType(asset)
-                      setCreateTicketForm(prev => ({
-                        ...prev, 
-                        tokenOutKey: asset.type === 'coin' ? asset.denom! : asset.path!
-                      }))
+                      if (!isDisabled) {
+                        setAssetOutType(asset)
+                        setCreateTicketForm(prev => ({
+                          ...prev, 
+                          tokenOutKey: asset.type === 'coin' ? asset.denom! : asset.path!
+                        }))
+                      }
                     }}
                   >
                     <span>{asset.symbol || asset.name}</span>
