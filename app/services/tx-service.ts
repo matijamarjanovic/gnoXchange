@@ -73,7 +73,6 @@ func main() {
       broadcastType: BroadcastType.SYNC
     };
 
-    await adenaService.getSdk().signTransaction(transactionRequest);
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
     return response.code === 0;
   } catch (error) {
@@ -143,7 +142,6 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
       broadcastType: BroadcastType.SYNC
     };
 
-    await adenaService.getSdk().signTransaction(transactionRequest);
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
     return response.code === 0;
   } catch (error) {
@@ -214,8 +212,6 @@ func main() {
 
   try {
     
-    const signResult = await adenaService.getSdk().signTransaction(transactionRequest);
-    console.log(signResult);
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
 
     console.log(response);
@@ -245,7 +241,6 @@ export async function createTicket(
     let tx;
     
     if (assetInType === 'coin') {
-      // For coin-to-token, use MsgCall
       tx = TransactionBuilder.create()
         .messages(
           makeMsgCallMessage({
@@ -326,7 +321,6 @@ func main() {${approvalCode}
       broadcastType: BroadcastType.SYNC
     };
 
-    await adenaService.getSdk().signTransaction(transactionRequest);
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
 
     console.log(response);
