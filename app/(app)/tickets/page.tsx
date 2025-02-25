@@ -12,7 +12,7 @@ import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
-
+import { NoDataMessage } from '@/components/no-data-mess'
 interface CreateTicketForm {
   tokenInKey: string
   tokenOutKey: string
@@ -164,35 +164,39 @@ export default function TicketsPage() {
       </div>
       <div className="flex gap-6">
         <div className="w-1/3 space-y-3">
-          {getCurrentPageItems().map((ticket) => (
-            <Card
-              key={ticket.id}
-              className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
-                selectedTicket?.id === ticket.id && !isCreatingTicket ? 'ring-2 ring-gray-900' : ''
-              }`}
-              onClick={() => {
-                setSelectedTicket(ticket)
-                setIsCreatingTicket(false)
-              }}
-            >
-              <div className="flex justify-between items-center text-xs">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-500 w-16">{ticket.id}</span>
-                  <span>
-                    {ticket.assetIn.type === 'nft' 
-                      ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
-                      : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom}`
-                    }
-                  </span>
+          {getCurrentPageItems().length > 0 ? (
+            getCurrentPageItems().map((ticket) => (
+              <Card
+                key={ticket.id}
+                className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
+                  selectedTicket?.id === ticket.id && !isCreatingTicket ? 'ring-2 ring-gray-900' : ''
+                }`}
+                onClick={() => {
+                  setSelectedTicket(ticket)
+                  setIsCreatingTicket(false)
+                }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500 w-16">{ticket.id}</span>
+                    <span>
+                      {ticket.assetIn.type === 'nft' 
+                        ? `${ticket.assetIn.tokenHubPath} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                        : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom}`
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500">
+                      {formatTime(ticket.createdAt)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-500">
-                    {formatTime(ticket.createdAt)}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          ) : (
+            <NoDataMessage />
+          )}
         </div>
         <div className="w-2/3">
           {renderRightCard()}

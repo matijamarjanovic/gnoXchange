@@ -2,6 +2,7 @@
 
 import { getPoolsPage } from '@/app/queries/abci-queries'
 import { PoolInfo } from '@/app/types/types'
+import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -17,7 +18,6 @@ import { useEffect, useState } from 'react'
 import { CreatePool } from '../../../components/create-pool'
 import { PaginationControls } from '../../../components/pagination-controls'
 import { SelectedPool } from '../../../components/selected-pool'
-
 interface CreatePoolForm {
   tokenA: string
   tokenB: string
@@ -169,44 +169,48 @@ export default function PoolsPage() {
       </div>
       <div className="flex gap-6">
         <div className="w-1/3 space-y-4">
-          {getCurrentPageItems().map((pool) => (
-            <Card
-              key={pool.poolKey}
-              className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
-                selectedPool?.poolKey === pool.poolKey && !isCreatingPool ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => {
-                setSelectedPool(pool)
-                setIsCreatingPool(false)
-              }}
-            >
-              <h3 className="font-bold text-lg">{`${pool.tokenAInfo.symbol} ⇄ ${pool.tokenBInfo.symbol}`}</h3>
-              <div className="text-xs text-gray-400 space-y-1">
-                <div className="flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger>
-                        <p>Liquidity</p>
-                      </TooltipTrigger>
-                      <TooltipContent className="text-[10px] bg-gray-700 border-gray-900 text-gray-400">
-                        <p>All values are shown in their native token denominations.</p>
-                        <div className="flex space-x-2">
-                          <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.tokenAInfo.decimals} decimals</p>
-                          <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.tokenBInfo.decimals} decimals</p>
-                          <p><strong>LP Token</strong> 6 decimals</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+          {getCurrentPageItems().length > 0 ? (
+            getCurrentPageItems().map((pool) => (
+              <Card
+                key={pool.poolKey}
+                className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
+                  selectedPool?.poolKey === pool.poolKey && !isCreatingPool ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => {
+                  setSelectedPool(pool)
+                  setIsCreatingPool(false)
+                }}
+              >
+                <h3 className="font-bold text-lg">{`${pool.tokenAInfo.symbol} ⇄ ${pool.tokenBInfo.symbol}`}</h3>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <TooltipProvider>
+                      <Tooltip delayDuration={100}>
+                        <TooltipTrigger>
+                          <p>Liquidity</p>
+                        </TooltipTrigger>
+                        <TooltipContent className="text-[10px] bg-gray-700 border-gray-900 text-gray-400">
+                          <p>All values are shown in their native token denominations.</p>
+                          <div className="flex space-x-2">
+                            <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.tokenAInfo.decimals} decimals</p>
+                            <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.tokenBInfo.decimals} decimals</p>
+                            <p><strong>LP Token</strong> 6 decimals</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex space-x-4">
+                    <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.reserveA}</p>
+                    <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.reserveB}</p>
+                    <p><strong>LP amount</strong> {pool.totalSupplyLP}</p>
+                  </div>
                 </div>
-                <div className="flex space-x-4">
-                  <p><strong>{pool.tokenAInfo.symbol}</strong> {pool.reserveA}</p>
-                  <p><strong>{pool.tokenBInfo.symbol}</strong> {pool.reserveB}</p>
-                  <p><strong>LP amount</strong> {pool.totalSupplyLP}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          ) : (
+            <NoDataMessage />
+          )}
         </div>
         <div className="w-2/3">
           {renderRightCard()}

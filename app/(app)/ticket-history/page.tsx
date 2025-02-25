@@ -12,7 +12,7 @@ import { useLocalStorage } from 'react-use';
 import { PaginationControls } from '../../../components/pagination-controls';
 import { TicketSidebar } from "../../../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
-
+import { NoDataMessage } from "@/components/no-data-mess";
 const PAGE_SIZE_KEY = 'ticketHistory.pageSize'
 
 export default function TicketHistory() {
@@ -129,35 +129,39 @@ export default function TicketHistory() {
         </div>
         <div className="relative">
           <div className="grid gap-1 max-h-[calc(81vh)] overflow-y-auto">
-            {getCurrentPageItems().map((ticket) => (
-              <Card 
-                key={ticket.id} 
-                className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
-                onClick={() => handleTicketClick(ticket)}
-              >
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 w-16">{ticket.id}</span>
-                    <span>
-                      {ticket.assetIn.type === 'nft' 
-                        ? `${getNFTName(ticket.assetIn.tokenHubPath || '')} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
-                        : ticket.assetIn.type === 'coin'
-                        ? `${ticket.assetIn.denom} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
-                        : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom || ''}`
-                      }
-                    </span>
+            {getCurrentPageItems().length > 0 ? (
+              getCurrentPageItems().map((ticket) => (
+                <Card 
+                  key={ticket.id} 
+                  className="p-2 bg-gray-800 text-gray-400 border-none shadow-lg cursor-pointer hover:bg-gray-900"
+                  onClick={() => handleTicketClick(ticket)}
+                >
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500 w-16">{ticket.id}</span>
+                      <span>
+                        {ticket.assetIn.type === 'nft' 
+                          ? `${getNFTName(ticket.assetIn.tokenHubPath || '')} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                          : ticket.assetIn.type === 'coin'
+                          ? `${ticket.assetIn.denom} → ${ticket.assetOut.denom || ticket.assetOut.symbol || ''}`
+                          : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom || ''}`
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2 py-0.5 rounded-full ${getTicketStatusConfig(ticket.status).bgColor} ${getTicketStatusConfig(ticket.status).color}`}>
+                        {getTicketStatusConfig(ticket.status).label}
+                      </span>
+                      <span className="text-gray-500">
+                        {formatTime(ticket.createdAt)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded-full ${getTicketStatusConfig(ticket.status).bgColor} ${getTicketStatusConfig(ticket.status).color}`}>
-                      {getTicketStatusConfig(ticket.status).label}
-                    </span>
-                    <span className="text-gray-500">
-                      {formatTime(ticket.createdAt)}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            ) : (
+              <NoDataMessage /> 
+            )}
           </div>
         </div>
       </div>
