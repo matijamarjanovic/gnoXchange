@@ -35,6 +35,7 @@ export class AdenaService {
         this.updateStoredAddress(account.data.address);
         return account.data.address;
       }
+
       throw new Error('No address found after connection');
     } catch (error) {
       console.error('Failed to connect wallet:', error);
@@ -81,10 +82,15 @@ export class AdenaService {
   }
 
   public getAddress(): string {
-    return this.getStoredAddress() || '';
+    return this.getStoredAddress()?.replaceAll("\"", "") || '';
   }
 
   public getSdk(): AdenaSDK {
     return this.sdk;
+  }
+
+  public async getNetwork(): Promise<string> {
+    const account = await this.sdk.getAccount();
+    return account.data?.chainId || '';
   }
 }

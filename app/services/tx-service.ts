@@ -1,10 +1,7 @@
 import { AdenaService } from "@/app/services/adena-service";
 import { GnoPackage } from "@/app/types/adena-types";
-import { BroadcastType } from "@adena-wallet/sdk";
-import { Tx } from "@gnolang/tm2-js-client";
+import { BroadcastType, TransactionBuilder, makeMsgRunMessage } from "@adena-wallet/sdk";
 import { Ticket } from "../types/types";
-import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
-
 
 export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
   const adenaService = AdenaService.getInstance();
@@ -58,24 +55,27 @@ func main() {
     ]
   };
 
-  const runMessage: AdenaRunMessage = {
-    type: "/vm.m_run",
-    value: {
-      caller: adenaService.getAddress(),
-      send: "",
-      package: gnoPackage
-    }
-  };
-
-
   try {
-    const response = await adenaService.signAndBroadcastTransaction({
-      messages: [runMessage],
-      gasFee: 1,
-      gasWanted: 200000000
-    });
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          package: gnoPackage
+        })
+      )
+      .fee(1, 'ugnot')
+      .memo("")
+      .build();
 
-    return response.code === 0; 
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    await adenaService.getSdk().signTransaction(transactionRequest);
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
   } catch (error) {
     console.error("Error approving tokens:", error);
     throw error;
@@ -125,22 +125,26 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
     ]
   };
 
-  const runMessage: AdenaRunMessage = {
-    type: "/vm.m_run",
-    value: {
-      caller: adenaService.getAddress(),
-      send: "0",
-      package: gnoPackage
-    }
-  };
-
   try {
-    const response = await adenaService.signAndBroadcastTransaction({
-      messages: [runMessage],
-      gasFee: 1000000,
-      gasWanted: 200000000
-    });
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+          send: "0",
+          package: gnoPackage
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .memo("")
+      .build();
 
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    await adenaService.getSdk().signTransaction(transactionRequest);
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
     return response.code === 0;
   } catch (error) {
     console.error("Error approving token amounts:", error);
@@ -189,32 +193,32 @@ func main() {
     }]
   };
 
+
+  const tx = TransactionBuilder.create()
+    .messages(
+      makeMsgRunMessage({
+        caller: adenaService.getAddress(),
+        send: ticket.assetOut.type === 'coin' ? amountOut.toString() + "ugnot" : "",
+        package: gnoPackage
+      })
+    )
+    .fee(1000000, 'ugnot')
+    .gasWanted(200000000)
+    .memo("")
+    .build();
+
   const transactionRequest = {
-    tx: Tx.create({
-      messages: [{
-        type: "/vm.m_run",
-        value: {
-          caller: adenaService.getAddress(),
-          send: ticket.assetOut.type === 'coin' ? amountOut.toString() : "0",
-          package: gnoPackage
-        }
-      }],
-      fee: {
-        gasFee: '3000000ugnot',
-        gasWanted: 60000000
-      },
-      memo: ""
-    }),
-    broadcastType: BroadcastType.SYNC,
+    tx,
+    broadcastType: BroadcastType.SYNC
   };
 
   try {
-    // First sign the transaction
-    const signedTx = await adenaService.getSdk().signTransaction(transactionRequest);
     
-    // Then broadcast it
+    const signResult = await adenaService.getSdk().signTransaction(transactionRequest);
+    console.log(signResult);
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    console.log('Transaction response:', response);
+
+    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error fulfilling ticket:", error);
