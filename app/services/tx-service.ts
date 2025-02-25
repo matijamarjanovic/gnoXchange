@@ -293,7 +293,7 @@ ${imports}
 )
 
 func main() {${approvalCode}
-    ticketID, err := gnoxchange.${createFunction}
+    _, err := gnoxchange.${createFunction}
     if err != nil {
         panic(err)
     }
