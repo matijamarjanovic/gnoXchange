@@ -1,6 +1,7 @@
 'use client'
 
 import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { createTicket } from "@/app/services/tx-service"
 import { Asset, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
 import { Button } from "@/components/ui/button"
@@ -8,8 +9,9 @@ import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
+import { toast } from "@/hooks/use-toast"
 import { Coins, Ticket } from "lucide-react"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 interface CreateTicketForm {
   tokenInKey: string
@@ -113,9 +115,56 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
     })
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onSubmitAction(createTicketForm)
-  }
+    e.preventDefault();
+
+    if (!assetInType || !assetOutType || 
+        !createTicketForm.amountIn || 
+        !createTicketForm.minAmountOut || 
+        !createTicketForm.expiryHours) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please fill in all fields"
+      });
+      return;
+    }
+
+    const amountIn = parseFloat(createTicketForm.amountIn.replace(/\s+/g, ''));
+    const minAmountOut = parseFloat(createTicketForm.minAmountOut.replace(/\s+/g, ''));
+    const expiryHours = parseInt(createTicketForm.expiryHours);
+
+    if (isNaN(amountIn) || isNaN(minAmountOut) || isNaN(expiryHours)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid input",
+        description: "Please enter valid numbers"
+      });
+      return;
+    }
+
+    try {
+      const success = await createTicket(
+        assetInType.type as 'coin' | 'token',
+        assetOutType.type as 'coin' | 'token',
+        assetInType.type === 'coin' ? assetInType.denom! : assetInType.path!,
+        assetOutType.type === 'coin' ? assetOutType.denom! : assetOutType.path!,
+        amountIn,
+        minAmountOut,
+        expiryHours
+      );
+
+      if (success) {
+        onSubmitAction(createTicketForm);
+      }
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create ticket"
+      });
+    }
+  };
 
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
@@ -233,12 +282,15 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
         <div className="space-y-2">
           <label className="text-sm">Amount In</label>
           <Input
-            type="number"
-            placeholder="Amount of asset to swap"
-            value={createTicketForm.amountIn}
-            onChange={(e) => setCreateTicketForm(prev => ({...prev, amountIn: e.target.value}))}
-            className="bg-gray-900 border-gray-700"
-          />
+              id="amountIn"
+              type="number"
+              placeholder="Amount of asset to sell"
+              value={createTicketForm.amountIn}
+              onChange={(e) => setCreateTicketForm({ ...createTicketForm, amountIn: e.target.value })}
+              className="flex-1 bg-gray-900 text-gray-400 border-none"
+              inputMode="decimal"
+              spacing={assetInType?.decimals ?? 6}
+            />
         </div>
         <div className="space-y-2">
           <label className="text-sm">Minimum Amount Out</label>
@@ -248,6 +300,8 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
             value={createTicketForm.minAmountOut}
             onChange={(e) => setCreateTicketForm(prev => ({...prev, minAmountOut: e.target.value}))}
             className="bg-gray-900 border-gray-700"
+            inputMode="decimal"
+            spacing={assetOutType?.decimals ?? 6}
           />
         </div>
         <div className="space-y-2">

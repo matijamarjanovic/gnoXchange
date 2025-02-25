@@ -2,17 +2,30 @@
 
 import { AdenaService } from "@/app/services/adena-service"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { seededRandom } from '@/utils/random'
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useLocalStorage } from 'react-use'
-import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 import { Navbar } from "../../components/nav-bar"
+import { TicketSidebarProvider } from "./contexts/TicketSidebarContext"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useLocalStorage<string>("walletAddress", "")
   const [partialAddress, setPartialAddress] = useState<string>("")
 
+  // Use a constant seed value
+  const random = seededRandom(123)
   
+  // Pre-calculate random positions for consistent rendering
+  const logoPositions = Array.from({ length: 50 }, () => ({
+    transform: `rotate(${random() * 360}deg)`,
+    left: `${random() * 100}%`,
+    top: `${random() * 100}%`,
+    width: '100px',
+    height: '100px',
+    mask: 'radial-gradient(circle, black 30%, transparent 70%)',
+    WebkitMask: 'radial-gradient(circle, black 30%, transparent 70%)',
+  }))
 
   const toggleWallet = async () => {
     const adenaService = AdenaService.getInstance()
@@ -46,26 +59,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => {
       window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener)
     }
-  }, [setWalletAddress])
+  }, [walletAddress, setWalletAddress])
 
   return (
     <TicketSidebarProvider>
       <TooltipProvider>
         <div className="min-h-screen flex-col bg-gray-700 text-gray-400">
           <div className="fixed inset-0 w-full h-full overflow-hidden opacity-10">
-            {[...Array(50)].map((_, i) => (
+            {logoPositions.map((style, i) => (
               <div
                 key={i}
                 className="absolute"
-                style={{
-                  transform: `rotate(${Math.random() * 360}deg)`,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  width: '100px',
-                  height: '100px',
-                  mask: 'radial-gradient(circle, black 30%, transparent 70%)',
-                  WebkitMask: 'radial-gradient(circle, black 30%, transparent 70%)',
-                }}
+                style={style}
               >
                 <Image
                   src="/gnologo.png"

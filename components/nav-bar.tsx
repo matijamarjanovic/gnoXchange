@@ -18,7 +18,7 @@ export function Navbar({ walletAddress, onWalletToggleAction }: NavbarProps) {
   const router = useRouter()
 
   return (
-    <header className="relative z-10">
+    <div className="relative z-10">
       <div className="flex items-center bg-gray-800 shadow-lg mb-2">
         <div className="flex w-full text-lg items-center justify-between px-2">
           <div className="flex items-center gap-4 ">
@@ -88,6 +88,6 @@ export function Navbar({ walletAddress, onWalletToggleAction }: NavbarProps) {
           </Tooltip>
         </div>
       </div>
-    </header>
+    </div>
   )
 } 

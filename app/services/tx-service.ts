@@ -1,6 +1,6 @@
 import { AdenaService } from "@/app/services/adena-service";
 import { GnoPackage } from "@/app/types/adena-types";
-import { BroadcastType, TransactionBuilder, makeMsgRunMessage } from "@adena-wallet/sdk";
+import { BroadcastType, TransactionBuilder, makeMsgCallMessage, makeMsgRunMessage } from "@adena-wallet/sdk";
 import { Ticket } from "../types/types";
 
 export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
@@ -204,7 +204,7 @@ func main() {
     )
     .fee(1000000, 'ugnot')
     .gasWanted(200000000)
-    .memo("")
+    .memo("memo")
     .build();
 
   const transactionRequest = {
@@ -226,4 +226,115 @@ func main() {
   }
 }
 
+export async function createTicket(
+  assetInType: 'coin' | 'token',
+  assetOutType: 'coin' | 'token',
+  assetInPath: string,
+  assetOutPath: string,
+  amountIn: number,
+  minAmountOut: number,
+  expiryHours: number
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    let tx;
+    
+    if (assetInType === 'coin') {
+      // For coin-to-token, use MsgCall
+      tx = TransactionBuilder.create()
+        .messages(
+          makeMsgCallMessage({
+            caller: adenaService.getAddress(),
+            send: `${amountIn}${assetInPath}`,
+            pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+            func: "CreateCoinToTokenTicket",
+            args: [
+              assetInPath,
+              assetOutPath,
+              minAmountOut.toString(),
+              expiryHours.toString()
+            ]
+          })
+        )
+        .fee(1000000, 'ugnot')
+        .gasWanted(200000000)
+        .memo("")
+        .build();
+    } else {
+      let createFunction: string;
+      const imports = `    "std"\n    "gno.land/r/matijamarjanovic/gnoxchange"\n    "gno.land/r/matijamarjanovic/tokenhub"`;
+      
+      const approvalCode = `
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    token := tokenhub.GetToken("${assetInPath}")
+    if token == nil {
+        panic("token not found")
+    }
+    
+    teller := token.CallerTeller()
+    teller.Approve(gnoxchangeAddr, ${amountIn})
+    `;
+
+      if (assetInType === 'token' && assetOutType === 'coin') {
+        createFunction = `CreateTokenToCoinTicket("${assetInPath}", "${assetOutPath}", ${amountIn}, ${minAmountOut}, ${expiryHours})`;
+      } else {
+        createFunction = `CreateTokenToTokenTicket("${assetInPath}", "${assetOutPath}", ${amountIn}, ${minAmountOut}, ${expiryHours})`;
+      }
+
+      const gnoPackage: GnoPackage = {
+        name: "main",
+        path: "gno.land/r/demo/main",
+        files: [{
+          name: "main.gno",
+          body: `package main
+
+import (
+${imports}
+)
+
+func main() {${approvalCode}
+    ticketID, err := gnoxchange.${createFunction}
+    if err != nil {
+        panic(err)
+    }
+}`
+        }]
+      };
+
+      console.log(gnoPackage.files[0].body);
+
+      tx = TransactionBuilder.create()
+        .messages(
+          makeMsgRunMessage({
+            caller: adenaService.getAddress(),
+            send: "",
+            package: gnoPackage
+          })
+        )
+        .fee(1000000, 'ugnot')
+        .memo("")
+        .build();
+    }
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    await adenaService.getSdk().signTransaction(transactionRequest);
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+
+    console.log(response);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error creating ticket:", error);
+    throw error;
+  }
+}
+  
 
