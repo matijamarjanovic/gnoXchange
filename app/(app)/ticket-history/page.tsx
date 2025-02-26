@@ -149,7 +149,7 @@ export default function TicketHistory() {
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 rounded-full ${getTicketStatusConfig(ticket.status).bgColor} ${getTicketStatusConfig(ticket.status).color}`}>
+                      <span className={`px-2 py-0.5 rounded-md ${getTicketStatusConfig(ticket.status).bgColor} ${getTicketStatusConfig(ticket.status).color}`}>
                         {getTicketStatusConfig(ticket.status).label}
                       </span>
                       <span className="text-gray-500">
