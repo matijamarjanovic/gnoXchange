@@ -1,6 +1,7 @@
 'use client'
 
 import { getOpenNFTTicketsPage } from '@/app/queries/abci-queries'
+import { AdenaService } from '@/app/services/adena-service'
 import { Ticket } from '@/app/types/types'
 import { formatAmount, getNFTName } from '@/app/utils'
 import { NoDataMessage } from '@/components/no-data-mess'
@@ -125,11 +126,11 @@ export default function NFTMarketPage() {
     }
   }, [searchQuery, tickets, fuse])
 
-  const getCurrentPageItems = () => {
+  const getCurrentPageItems = useCallback(() => {
     const startIndex = (currentPage - 1) * pageSize
     const endIndex = startIndex + pageSize
     return filteredTickets.slice(startIndex, endIndex)
-  }
+  }, [currentPage, pageSize, filteredTickets])
 
   const handleSellNFT = async () => {
     try {
@@ -150,6 +151,12 @@ export default function NFTMarketPage() {
       window.removeEventListener('adenaAddressChanged', handleAddressChange)
     }
   })
+
+  useEffect(() => {
+    if (getCurrentPageItems().length === 0 && !isSellingNFT) {
+      setIsSellingNFT(true);
+    }
+  }, [isSellingNFT, setIsSellingNFT, getCurrentPageItems]);
 
   if (isLoading) {
     return (
@@ -208,14 +215,19 @@ export default function NFTMarketPage() {
                         <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
                       </div>
                     </div>
-                    <div className="h-16 w-16 rounded-md overflow-hidden">
-                      <Image 
-                        src="/nft-mock.png" 
-                        alt="NFT Preview"
-                        className="h-full w-full object-cover"
-                        width={64}
-                        height={64}
-                      />
+                    <div className="flex items-center">
+                      {ticket.creator === AdenaService.getInstance().getAddress() && (
+                        <span className="px-2 py-0.5 text-xs bg-gray-700 rounded-md text-gray-400">Owner</span>
+                      )}
+                      <div className="h-16 w-16 rounded-md overflow-hidden ml-4">
+                        <Image 
+                          src="/nft-mock.png" 
+                          alt="NFT Preview"
+                          className="h-full w-full object-cover"
+                          width={64}
+                          height={64}
+                        />
+                      </div>
                     </div>
                   </div>
                 </Card>

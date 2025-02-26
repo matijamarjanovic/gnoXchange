@@ -1,6 +1,7 @@
 'use client'
 
-import { buyNFT } from "@/app/services/tx-service"
+import { AdenaService } from "@/app/services/adena-service"
+import { buyNFT, cancelTicket } from "@/app/services/tx-service"
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { FormattedAmount } from "@/components/formatted-amount"
@@ -12,9 +13,9 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "@/hooks/use-toast"
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
-import { Ghost, ShoppingCart } from "lucide-react"
+import { Ghost, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "./ui/button"
 
 interface SelectedNFTProps {
@@ -24,21 +25,36 @@ interface SelectedNFTProps {
 
 export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
   const [isTrading, setIsTrading] = useState(false)
+  const [walletAddress, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
+
+  useEffect(() => {
+    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
+      setWalletAddress(event.detail.newAddress || '');
+    };
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+    };
+  }, []);
 
   const getNFTName = (path: string) => {
     const parts = path.split('.')
     return parts[parts.length - 2] + '.' + parts[parts.length - 1]
   }
 
-  const handleTrade = async () => {
+  const handleBuyNFT = async () => {
     try {
       setIsTrading(true)
       
       const success = await buyNFT(
         ticket.id,
-        ticket.minAmountOut
+        ticket.minAmountOut,
+        ticket.assetOut.type as 'coin' | 'token',
+        ticket.assetOut.type === 'coin' ? '' : ticket.assetOut.path || ''
       )
 
       if (success) {
@@ -60,6 +76,31 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to purchase NFT",
+        variant: "destructive"
+      })
+    } finally {
+      setIsTrading(false)
+    }
+  }
+
+  const handleCancelSale = async () => {
+    try {
+      setIsTrading(true)
+      const success = await cancelTicket(ticket)
+
+      if (success) {
+        toast({
+          title: "Sale cancelled",
+          description: "Your NFT sale has been cancelled successfully.",
+          variant: "default"
+        })
+        await onSuccess?.()
+      }
+    } catch (error) {
+      console.error('Cancel failed:', error)
+      toast({
+        title: "Cancel failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       })
     } finally {
@@ -101,8 +142,12 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-            <p className="text-sm text-gray-400">Creator</p>
-            <p className="text-gray-300 truncate">{ticket.creator}</p>
+            <p className="text-sm text-gray-400">
+              {walletAddress === ticket.creator ? 'Creator (you)' : 'Creator'}
+            </p>
+            <p className={`truncate ${walletAddress === ticket.creator ? 'text-blue-500' : 'text-gray-300'}`}>
+              {ticket.creator}
+            </p>
           </div>
           <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
             <p className="text-sm text-gray-400">Status</p>
@@ -137,12 +182,25 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
           </div>
         </div>
         <Button 
-          onClick={handleTrade}
-          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          onClick={walletAddress === ticket.creator ? handleCancelSale : handleBuyNFT}
+          className={`w-full transition-all shadow-md ${
+            walletAddress === ticket.creator 
+              ? 'bg-red-700/80 hover:bg-red-600 text-gray-100'
+              : 'bg-blue-700 hover:bg-blue-600 text-gray-300'
+          }`}
           disabled={isTrading || ticket.status !== 'open'}
         >
-          <ShoppingCart className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
-          {isTrading ? 'Buying...' : 'Buy NFT'}
+          {walletAddress === ticket.creator ? (
+            <>
+              <X className="mr-2 h-4 w-4" />
+              Cancel Sale
+            </>
+          ) : (
+            <>
+              <ShoppingCart className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
+              {isTrading ? 'Buying...' : 'Buy NFT'}
+            </>
+          )}
         </Button>
       </div>
     </Card>

@@ -447,6 +447,8 @@ func main() {
 export async function buyNFT(
   ticketID: string,
   amountOut: number,
+  paymentType: 'coin' | 'token',
+  paymentPath?: string
 ): Promise<boolean> {
   const adenaService = AdenaService.getInstance();
   
@@ -455,20 +457,69 @@ export async function buyNFT(
   }
 
   try {
-    const tx = TransactionBuilder.create()
-      .messages(
-        makeMsgCallMessage({
-          caller: adenaService.getAddress(),
-          send: `${amountOut}ugnot`,
-          pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
-          func: "BuyNFT",
-          args: [ticketID, amountOut.toString()]
-        })
-      )
-      .fee(1000000, 'ugnot')
-      .gasWanted(200000000)
-      .memo("")
-      .build();
+    let tx;
+    
+    if (paymentType === 'coin') {
+      tx = TransactionBuilder.create()
+        .messages(
+          makeMsgCallMessage({
+            caller: adenaService.getAddress(),
+            send: `${amountOut}ugnot`,
+            pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+            func: "BuyNFT",
+            args: [ticketID, amountOut.toString()]
+          })
+        )
+        .fee(1000000, 'ugnot')
+        .gasWanted(200000000)
+        .memo("")
+        .build();
+    } else {
+      const gnoPackage: GnoPackage = {
+        name: "main",
+        path: "gno.land/r/demo/main",
+        files: [{
+          name: "main.gno",
+          body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/tokenhub"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    token := tokenhub.GetToken("${paymentPath}")
+    if token == nil {
+        panic("token not found")
+    }
+    
+    teller := token.CallerTeller()
+    teller.Approve(gnoxchangeAddr, ${amountOut})
+
+    err := gnoxchange.BuyNFT("${ticketID}", ${amountOut})
+    if err != nil {
+        panic(err)
+    }
+}`
+        }]
+      };
+      console.log(gnoPackage.files[0].body);
+
+      tx = TransactionBuilder.create()
+        .messages(
+          makeMsgRunMessage({
+            caller: adenaService.getAddress(),
+            send: "",
+            package: gnoPackage
+          })
+        )
+        .fee(1000000, 'ugnot')
+        .gasWanted(200000000)
+        .memo("")
+        .build();
+    }
 
     const transactionRequest = {
       tx,

@@ -126,11 +126,11 @@ export default function TicketsPage() {
     }
   }, [searchQuery, tickets, fuse])
 
-  const getCurrentPageItems = () => {
+  const getCurrentPageItems = useCallback(() => {
     const startIndex = (currentPage - 1) * pageSize
     const endIndex = startIndex + pageSize
     return filteredTickets.slice(startIndex, endIndex)
-  }
+  }, [currentPage, pageSize, filteredTickets])
 
   const renderRightCard = () => {
     if (isCreatingTicket) {
@@ -149,6 +149,12 @@ export default function TicketsPage() {
       />
     ) : null
   }
+
+  useEffect(() => {
+    if (getCurrentPageItems().length === 0 && !isCreatingTicket) {
+      setIsCreatingTicket(true);
+    }
+  }, [isCreatingTicket, getCurrentPageItems]);
 
   if (isLoading) {
     return null
