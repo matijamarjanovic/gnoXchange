@@ -1,8 +1,9 @@
 'use client'
 
-import { getAllNFTTicketsPage } from '@/app/queries/abci-queries'
-import { Asset, NFTDetails, Ticket } from '@/app/types/types'
+import { getOpenNFTTicketsPage } from '@/app/queries/abci-queries'
+import { Ticket } from '@/app/types/types'
 import { formatAmount, getNFTName } from '@/app/utils'
+import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedNFT } from '@/components/selected-nft'
 import { SellNFT } from '@/components/sell-nft'
@@ -11,9 +12,9 @@ import { Card } from '@/components/ui/card'
 import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
-import { NoDataMessage } from '@/components/no-data-mess'
+
 export default function NFTMarketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
@@ -24,6 +25,21 @@ export default function NFTMarketPage() {
   const [pageSize, setPageSize] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
+
+  const refreshNFTs = useCallback(async () => {
+    try {
+      const ticketsData = await getOpenNFTTicketsPage(1, 10000)
+      const sortedTickets = [...ticketsData].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      
+      setTickets(sortedTickets)
+      setFilteredTickets(sortedTickets)
+      setSelectedTicket(sortedTickets[0] || null)
+    } catch (error) {
+      console.error('Error refreshing NFTs:', error)
+    }
+  }, [])
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -40,13 +56,17 @@ export default function NFTMarketPage() {
 
     const fetchTickets = async () => {
       try {
-        const ticketsData = await getAllNFTTicketsPage(1, 10000)
+        const ticketsData = await getOpenNFTTicketsPage(1, 10000)
         
-        setTickets(ticketsData)
-        setFilteredTickets(ticketsData)
-        setSelectedTicket(ticketsData[0] || null)
+        const sortedTickets = [...ticketsData].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        
+        setTickets(sortedTickets)
+        setFilteredTickets(sortedTickets)
+        setSelectedTicket(sortedTickets[0] || null)
 
-        const fuseInstance = new Fuse(ticketsData, {
+        const fuseInstance = new Fuse(sortedTickets, {
           keys: [
             'assetIn.tokenHubPath',
             'assetIn.name',
@@ -91,7 +111,7 @@ export default function NFTMarketPage() {
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [pageSize])
+  }, [pageSize, refreshNFTs])
 
   useEffect(() => {
     if (!searchQuery) {
@@ -111,18 +131,32 @@ export default function NFTMarketPage() {
     return filteredTickets.slice(startIndex, endIndex)
   }
 
-  const handleSellNFT = async (nft: NFTDetails, assetType: Asset, amount: string) => {
+  const handleSellNFT = async () => {
     try {
-      console.log('Selling NFT:', nft, 'for', amount, assetType)
-      // todo: implement the logic to sell the NFT
+      refreshNFTs()
       setIsSellingNFT(false)
     } catch (error) {
       console.error('Error selling NFT:', error)
     }
   }
 
+  const handleAddressChange = () => {
+    refreshNFTs()
+  }
+
+  useEffect(() => {
+    window.addEventListener('adenaAddressChanged', handleAddressChange)
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange)
+    }
+  })
+
   if (isLoading) {
-    return null
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-400"></div>
+      </div>
+    )
   }
 
   return (
@@ -167,7 +201,8 @@ export default function NFTMarketPage() {
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 -mt-2">
+                      <span className="text-xs font-normal">{ticket.id}</span>
                       <h3 className="font-bold text-lg">NFT {getNFTName(ticket.assetIn.tokenHubPath || '')}</h3>
                       <div className="text-sm text-gray-400">
                         <p>Price: {formatAmount(ticket.minAmountOut)} GNOT</p>
@@ -198,7 +233,10 @@ export default function NFTMarketPage() {
               onSubmitAction={handleSellNFT}
             />
           ) : (
-            selectedTicket && <SelectedNFT ticket={selectedTicket} />
+            selectedTicket && <SelectedNFT 
+              ticket={selectedTicket} 
+              onSuccess={refreshNFTs}
+            />
           )}
         </div>
       </div>

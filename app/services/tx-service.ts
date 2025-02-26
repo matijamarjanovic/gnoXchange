@@ -367,5 +367,120 @@ export async function cancelTicket(ticket: Ticket): Promise<boolean> {
     throw error;
   }
 }
+
+export async function createNFTTicket(
+  nftPath: string,
+  assetOutType: 'coin' | 'token',
+  assetOutPath: string,
+  minAmountOut: number,
+  expiryHours: number
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const gnoPackage: GnoPackage = {
+      name: "main",
+      path: "gno.land/r/demo/main",
+      files: [{
+        name: "main.gno",
+        body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+    "gno.land/r/matijamarjanovic/tokenhub"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    nft := tokenhub.GetNFT("${nftPath}")
+    if nft == nil {
+        panic("NFT not found")
+    }
+    
+    nft.SetApprovalForAll(gnoxchangeAddr, true)
+
+    var err error
+    if "${assetOutType}" == "coin" {
+        _, err = gnoxchange.CreateNFTToCoinTicket("${nftPath}", "${assetOutPath}", ${minAmountOut}, ${expiryHours})
+    } else {
+        _, err = gnoxchange.CreateNFTToTokenTicket("${nftPath}", "${assetOutPath}", ${minAmountOut}, ${expiryHours})
+    }
+    
+    if err != nil {
+        panic(err)
+    }
+}`
+      }]
+    };
+
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          package: gnoPackage
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error creating NFT ticket:", error);
+    throw error;
+  }
+}
+
+export async function buyNFT(
+  ticketID: string,
+  amountOut: number,
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgCallMessage({
+          caller: adenaService.getAddress(),
+          send: `${amountOut}ugnot`,
+          pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+          func: "BuyNFT",
+          args: [ticketID, amountOut.toString()]
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error buying NFT:", error);
+    throw error;
+  }
+}
   
 

@@ -1,6 +1,8 @@
 'use client'
 
 import { getAllTokens, getUserNFTBalances, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { AdenaService } from "@/app/services/adena-service"
+import { createNFTTicket } from "@/app/services/tx-service"
 import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount, getNFTName } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
@@ -25,6 +27,7 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
   const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
   const [showLPTokens, setShowLPTokens] = useState(false)
   const [nfts, setNfts] = useState<NFTDetails[]>([])
+  const [expiryHours, setExpiryHours] = useState<string>('')
 
   const nativeCoin: Asset = {
     type: 'coin',
@@ -34,22 +37,33 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
     decimals: 6
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [fetchedTokens, fetchedBalances, fetchedNFTs] = await Promise.all([
-          getAllTokens(),
-          getUserTokenBalances("g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y"), // TODO: Replace with actual user address
-          getUserNFTBalances("g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y")  // TODO: Replace with actual user address
-        ])
-        setTokens(fetchedTokens)
-        setUserBalances(fetchedBalances)
-        setNfts(fetchedNFTs)
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      }
+  const fetchData = async () => {
+    try {
+      const [fetchedTokens, fetchedBalances, fetchedNFTs] = await Promise.all([
+        getAllTokens(),
+        getUserTokenBalances(AdenaService.getInstance().getAddress() || ''),
+        getUserNFTBalances(AdenaService.getInstance().getAddress() || '')
+      ])
+      setTokens(fetchedTokens)
+      setUserBalances(fetchedBalances)
+      setNfts(fetchedNFTs)
+    } catch (error) {
+      console.error('Failed to fetch data:', error)
     }
+  }
+
+  useEffect(() => {
     fetchData()
+
+    const handleAddressChange = () => {
+      fetchData()
+    }
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange)
+
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange)
+    }
   }, [])
 
   const assets: Asset[] = [
@@ -82,12 +96,33 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
       return (a.symbol || '').localeCompare(b.symbol || '')
     })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (nftDetails && assetOutType && amountOut) {
-      setIsSelling(true)
-      onSubmitAction(nftDetails, assetOutType, amountOut)
-      setTimeout(() => setIsSelling(false), 1000)
+      try {
+        setIsSelling(true)
+        
+        const success = await createNFTTicket(
+          nftDetails.key,
+          assetOutType.type as 'coin' | 'token',
+          assetOutType.type === 'coin' ? assetOutType.denom || '' : assetOutType.path || '',
+          parseInt(amountOut.replaceAll(' ', '')),
+          parseInt(expiryHours.trim())
+        );
+
+        if (success) {
+          onSubmitAction(nftDetails, assetOutType, amountOut)
+          onCloseAction()
+        } else {
+          console.error("Failed to create NFT ticket")
+          // todo: add error handling UI here
+        }
+      } catch (error) {
+        console.error("Error creating NFT ticket:", error)
+        // todo: add error handling UI here
+      } finally {
+        setIsSelling(false)
+      }
     }
   }
 
@@ -192,6 +227,16 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
             placeholder="Amount to receive"
             value={amountOut}
             onChange={(e) => setAmountOut(e.target.value)}
+            className="bg-gray-900 border-gray-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm">Expiry Hours</label>
+          <Input
+            type="number"
+            placeholder="Number of hours until expiry"
+            value={expiryHours}
+            onChange={(e) => setExpiryHours(e.target.value)}
             className="bg-gray-900 border-gray-700"
           />
         </div>
