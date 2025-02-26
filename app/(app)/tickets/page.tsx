@@ -1,6 +1,7 @@
 'use client'
 
 import { getOpenTicketsPage } from '@/app/queries/abci-queries'
+import { AdenaService } from '@/app/services/adena-service'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
 
 export default function TicketsPage() {
@@ -24,6 +25,22 @@ export default function TicketsPage() {
   const [pageSize, setPageSize] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
+
+  const refreshTickets = useCallback(async () => {
+    try {
+      const ticketsData = await getOpenTicketsPage(1, 10000)
+      const sortedTickets = [...ticketsData].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      
+      setTickets(sortedTickets)
+      setFilteredTickets(sortedTickets)
+      setSelectedTicket(sortedTickets[0] || null)
+
+    } catch (error) {
+      console.error('Error refreshing tickets:', error)
+    }
+  }, [])
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -85,9 +102,17 @@ export default function TicketsPage() {
       }
     }
 
+    const handleAddressChange = () => {
+      refreshTickets()
+    }
+
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [pageSize])
+    window.addEventListener('adenaAddressChanged', handleAddressChange)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('adenaAddressChanged', handleAddressChange)
+    }
+  }, [pageSize, refreshTickets])
 
   useEffect(() => {
     if (!searchQuery) {
@@ -105,22 +130,6 @@ export default function TicketsPage() {
     const startIndex = (currentPage - 1) * pageSize
     const endIndex = startIndex + pageSize
     return filteredTickets.slice(startIndex, endIndex)
-  }
-
-  const refreshTickets = async () => {
-    try {
-      const ticketsData = await getOpenTicketsPage(1, 10000)
-      const sortedTickets = [...ticketsData].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      
-      setTickets(sortedTickets)
-      setFilteredTickets(sortedTickets)
-      setSelectedTicket(sortedTickets[0] || null)
-
-    } catch (error) {
-      console.error('Error refreshing tickets:', error)
-    }
   }
 
   const renderRightCard = () => {
@@ -194,6 +203,9 @@ export default function TicketsPage() {
                         : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom}`
                       }
                     </span>
+                    {ticket.creator === AdenaService.getInstance().getAddress() && ( 
+                      <span className="px-2 py-0.5 text-xs bg-gray-700 rounded-md text-gray-400">Owner</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500">

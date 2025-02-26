@@ -1,6 +1,7 @@
 'use client'
 
 import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { AdenaService } from "@/app/services/adena-service"
 import { createTicket } from "@/app/services/tx-service"
 import { Asset, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
@@ -53,7 +54,7 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
       try {
         const [fetchedTokens, fetchedBalances] = await Promise.all([
           getAllTokens(),
-          getUserTokenBalances("g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y") // TODO: Replace with actual user address
+          getUserTokenBalances(AdenaService.getInstance().getAddress() || '')
         ])
         
         setTokens(fetchedTokens)
