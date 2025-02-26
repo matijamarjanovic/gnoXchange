@@ -4,6 +4,7 @@ import { getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { CreateTicket } from '@/components/create-ticket'
+import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { SelectedTicket } from '@/components/selected-ticket'
 import { Button } from '@/components/ui/button'
@@ -12,14 +13,6 @@ import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
-import { NoDataMessage } from '@/components/no-data-mess'
-interface CreateTicketForm {
-  tokenInKey: string
-  tokenOutKey: string
-  amountIn: string
-  minAmountOut: string
-  expiryHours: string
-}
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -44,11 +37,15 @@ export default function TicketsPage() {
       try {
         const ticketsData = await getOpenTicketsPage(1, 10000)
         
-        setTickets(ticketsData)
-        setFilteredTickets(ticketsData)
-        setSelectedTicket(ticketsData[0] || null)
+        const sortedTickets = [...ticketsData].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        
+        setTickets(sortedTickets)
+        setFilteredTickets(sortedTickets)
+        setSelectedTicket(sortedTickets[0] || null)
 
-        const fuseInstance = new Fuse(ticketsData, {
+        const fuseInstance = new Fuse(sortedTickets, {
           keys: [
             'assetIn.tokenHubPath',
             'assetIn.name',
@@ -110,12 +107,19 @@ export default function TicketsPage() {
     return filteredTickets.slice(startIndex, endIndex)
   }
 
-  const handleCreateTicket = async (form: CreateTicketForm) => {
+  const refreshTickets = async () => {
     try {
-      console.log('Creating ticket with:', form)
-      setIsCreatingTicket(false)
+      const ticketsData = await getOpenTicketsPage(1, 10000)
+      const sortedTickets = [...ticketsData].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      
+      setTickets(sortedTickets)
+      setFilteredTickets(sortedTickets)
+      setSelectedTicket(sortedTickets[0] || null)
+
     } catch (error) {
-      console.error('Error creating ticket:', error)
+      console.error('Error refreshing tickets:', error)
     }
   }
 
@@ -124,12 +128,17 @@ export default function TicketsPage() {
       return (
         <CreateTicket
           onCancelAction={() => setIsCreatingTicket(false)}
-          onSubmitAction={handleCreateTicket}
+          onSuccess={refreshTickets}
         />
       )
     }
 
-    return selectedTicket ? <SelectedTicket ticket={selectedTicket} /> : null
+    return selectedTicket ? (
+      <SelectedTicket 
+        ticket={selectedTicket} 
+        onSuccess={refreshTickets}
+      />
+    ) : null
   }
 
   if (isLoading) {

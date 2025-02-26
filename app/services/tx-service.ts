@@ -331,5 +331,41 @@ func main() {${approvalCode}
     throw error;
   }
 }
+
+export async function cancelTicket(ticket: Ticket): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgCallMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+          func: "CancelTicket",
+          args: [ticket.id]
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.SYNC
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error cancelling ticket:", error);
+    throw error;
+  }
+}
   
 

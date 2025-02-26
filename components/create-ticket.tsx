@@ -23,10 +23,10 @@ interface CreateTicketForm {
 
 interface CreateTicketProps {
   onCancelAction: () => void
-  onSubmitAction: (form: CreateTicketForm) => Promise<void>
+  onSuccess?: () => Promise<void>
 }
 
-export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketProps) {
+export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
   const [createTicketForm, setCreateTicketForm] = useState<CreateTicketForm>({
     tokenInKey: '',
     tokenOutKey: '',
@@ -154,14 +154,20 @@ export function CreateTicket({ onCancelAction, onSubmitAction }: CreateTicketPro
       );
 
       if (success) {
-        onSubmitAction(createTicketForm);
+        toast({
+          title: "Success",
+          description: "Ticket created successfully",
+          variant: "default"
+        });
+        await onSuccess?.();
+        onCancelAction();
       }
     } catch (error) {
       console.error("Error creating ticket:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create ticket"
+        description: error instanceof Error ? error.message : "Failed to create ticket"
       });
     }
   };
