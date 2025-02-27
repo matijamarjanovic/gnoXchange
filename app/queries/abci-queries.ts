@@ -34,7 +34,7 @@ export async function getPoolsPage(page: number, pageSize: number): Promise<Pool
       `GetPoolsPageInfoString("?page=${page}&size=${pageSize}")`
     )
     
-    if (!poolsData) {
+    if (!poolsData || poolsData === '( string)') {
       console.error('No pools data received')
       return []
     }
@@ -111,7 +111,7 @@ export async function getOpenTicketsPage(page: number, pageSize: number): Promis
       REALM_PATH,
       `GetOpenTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || !ticketsData.includes('string)')) {
+    if (!ticketsData || ticketsData === '( string)') {
       console.error('No tickets data received')
       return []
     }
@@ -242,7 +242,7 @@ export async function getAllNFTTicketsPage(page: number, pageSize: number): Prom
       REALM_PATH,
       `GetAllNFTTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || !ticketsData.includes('string)')) {
+    if (!ticketsData || ticketsData === '( string)') {
       console.error('No NFT tickets data received')
       return []
     }
@@ -266,7 +266,7 @@ export async function getOpenNFTTicketsPage(page: number, pageSize: number): Pro
       REALM_PATH,
       `GetOpenNFTTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || !ticketsData.includes('string)')) {
+    if (!ticketsData || ticketsData === '( string)') {
       console.error('No open NFT tickets data received')
       return []
     }
@@ -369,7 +369,7 @@ export async function getTicketsPage(page: number, pageSize: number): Promise<Ti
       `GetTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
     
-    if (!ticketsData || !ticketsData.includes('string)')) {
+    if (!ticketsData || ticketsData === '( string)') {
       console.error('No tickets data received')
       return []
     }
@@ -393,6 +393,10 @@ export async function getAllTokens(): Promise<TokenDetails[]> {
       TOKENHUB_PATH,
       'GetAllTokenWithDetails()'
     )
+
+    if (tokensData === '( string)') {
+      return []
+    }
 
     const dataMatch = tokensData.match(/\("([^"]+)"\s+string\)/)
     if (!dataMatch) {
@@ -429,6 +433,10 @@ export async function getUserTokenBalances(userNameOrAddress: string): Promise<T
       TOKENHUB_PATH,
       `GetUserTokenBalancesNonZero("${userNameOrAddress}")`,
     )
+
+    if (balancesData === '( string)') {
+      return []
+    }
 
     const dataMatch = balancesData.match(/\("([^"]+)"\s+string\)/)
     if (!dataMatch) {
@@ -469,6 +477,10 @@ export async function getUserNFTBalances(userNameOrAddress: string): Promise<NFT
       TOKENHUB_PATH,
       `GetUserNFTBalances("${userNameOrAddress}")`,
     )
+
+    if (nftsData === '( string)') {
+      return []
+    }
 
     const dataMatch = nftsData.match(/\("([^"]+)"\s+string\)/)
     if (!dataMatch) {

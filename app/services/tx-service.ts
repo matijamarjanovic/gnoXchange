@@ -70,7 +70,7 @@ func main() {
 
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
@@ -139,7 +139,7 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
 
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
@@ -207,7 +207,7 @@ func main() {
 
   const transactionRequest = {
     tx,
-    broadcastType: BroadcastType.SYNC
+    broadcastType: BroadcastType.COMMIT
   };
 
   try {
@@ -319,7 +319,7 @@ func main() {${approvalCode}
 
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
@@ -357,7 +357,7 @@ export async function cancelTicket(ticket: Ticket): Promise<boolean> {
 
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
@@ -433,7 +433,7 @@ func main() {
 
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
@@ -458,7 +458,6 @@ export async function buyNFT(
 
   try {
     let tx;
-    
     if (paymentType === 'coin') {
       tx = TransactionBuilder.create()
         .messages(
@@ -507,6 +506,7 @@ func main() {
       };
       console.log(gnoPackage.files[0].body);
 
+
       tx = TransactionBuilder.create()
         .messages(
           makeMsgRunMessage({
@@ -520,10 +520,10 @@ func main() {
         .memo("")
         .build();
     }
-
+    console.log(tx.fee)
     const transactionRequest = {
       tx,
-      broadcastType: BroadcastType.SYNC
+      broadcastType: BroadcastType.COMMIT
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
