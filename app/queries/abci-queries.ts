@@ -524,5 +524,34 @@ export async function getUserNFTBalances(userNameOrAddress: string): Promise<NFT
     console.error('Error fetching user NFT balances:', error)
     return []
   }
+}
+
+export async function getSwapEstimate(
+  poolKey: string, 
+  tokenInKey: string, 
+  amountIn: number
+): Promise<number> {
+  try {
+    const estimateData = await gnoService.evaluateExpression(
+      REALM_PATH,
+      `GetSwapEstimate("${poolKey}", "${tokenInKey}", ${amountIn})`
+    )
+    const numberMatch = estimateData.match(/\((\d+)\s+uint64\)/)
+    if (!numberMatch) {
+      console.error('Invalid swap estimate format:', estimateData)
+      return 0
+    }
+
+    const estimate = parseInt(numberMatch[1])
+    if (isNaN(estimate)) {
+      console.error('Failed to parse swap estimate:', estimateData)
+      return 0
+    }
+
+    return estimate
+  } catch (error) {
+    console.error('Error fetching swap estimate:', error)
+    return 0
+  }
 } 
 

@@ -735,6 +735,82 @@ export async function withdrawLiquidity(
   }
 }
 
+export async function swap(
+  poolKey: string,
+  tokenInKey: string,
+  amountIn: number,
+  minAmountOut: number
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const gnoxchangeAddr = "gno.land/r/matijamarjanovic/gnoxchange"
+    
+    const gnoPackage: GnoPackage = {
+      name: "main",
+      path: "gno.land/r/demo/main",
+      files: [{
+        name: "main.gno",
+        body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/tokenhub"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("${gnoxchangeAddr}")
+    
+    tokenIn := tokenhub.GetToken("${tokenInKey}")
+    if tokenIn == nil {
+        panic("token not found")
+    }
+    tellerIn := tokenIn.CallerTeller()
+    tellerIn.Approve(gnoxchangeAddr, ${amountIn})
+
+    _, err := gnoxchange.Swap("${poolKey}", "${tokenInKey}", ${amountIn}, ${minAmountOut})
+    if err != nil {
+        panic(err)
+    }
+}`
+      }]
+    };
+
+    console.log(gnoPackage.files[0].body);
+
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          package: gnoPackage
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.COMMIT
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error executing swap:", error);
+    throw error;
+  }
+}
+
+
+
 
 
 
