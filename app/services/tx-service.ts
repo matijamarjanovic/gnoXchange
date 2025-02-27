@@ -615,5 +615,126 @@ func main() {
   }
 }
 
+export async function addLiquidity(
+  poolKey: string,
+  amountA: number,
+  amountB: number
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const [tokenA, tokenB] = poolKey.split(':');
+    
+    const gnoPackage: GnoPackage = {
+      name: "main",
+      path: "gno.land/r/demo/main",
+      files: [{
+        name: "main.gno",
+        body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/tokenhub"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    
+    tokenA := tokenhub.GetToken("${tokenA}")
+    if tokenA == nil {
+        panic("token A not found")
+    }
+    tellerA := tokenA.CallerTeller()
+    tellerA.Approve(gnoxchangeAddr, ${amountA})
+
+    tokenB := tokenhub.GetToken("${tokenB}")
+    if tokenB == nil {
+        panic("token B not found")
+    }
+    tellerB := tokenB.CallerTeller()
+    tellerB.Approve(gnoxchangeAddr, ${amountB})
+
+    err := gnoxchange.AddLiquidity("${poolKey}", ${amountA}, ${amountB})
+    if err != nil {
+        panic(err)
+    }
+}`
+      }]
+    };
+
+    console.log(gnoPackage.files[0].body);
+
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          package: gnoPackage
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.COMMIT
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error adding liquidity:", error);
+    throw error;
+  }
+}
+
+export async function withdrawLiquidity(
+  poolKey: string,
+  lpAmount: number
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
+  
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  try {
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgCallMessage({
+          caller: adenaService.getAddress(),
+          send: "",
+          pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+          func: "WithdrawLiquidity",
+          args: [poolKey, lpAmount.toString()]
+        })
+      )
+      .fee(1000000, 'ugnot')
+      .gasWanted(200000000)
+      .memo("")
+      .build();
+
+    const transactionRequest = {
+      tx,
+      broadcastType: BroadcastType.COMMIT
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    console.log(response);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error withdrawing liquidity:", error);
+    throw error;
+  }
+}
+
+
 
 

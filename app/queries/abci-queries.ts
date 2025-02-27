@@ -33,13 +33,20 @@ export async function getPoolsPage(page: number, pageSize: number): Promise<Pool
       REALM_PATH,
       `GetPoolsPageInfoString("?page=${page}&size=${pageSize}")`
     )
-    
     if (!poolsData || poolsData === '( string)') {
       console.error('No pools data received')
       return []
     }
 
-    return poolsData.split(';')
+    const dataMatch = poolsData.match(/\("([^"]+)"\s+string\)/)
+    if (!dataMatch) {
+      console.error('Invalid pools data format')
+      return []
+    }
+
+    const poolsStr = dataMatch[1]
+    
+    return poolsStr.split(';')
       .filter(Boolean)
       .map(poolStr => {
         if (!poolStr.includes('>')) return null
