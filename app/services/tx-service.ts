@@ -533,5 +533,87 @@ func main() {
     throw error;
   }
 }
+
+export async function createPool(
+  tokenA: string,
+  tokenB: string,
+  amountA: number,
+  amountB: number,
+): Promise<boolean> {
+  const adenaService = AdenaService.getInstance();
   
+  if (!adenaService.isConnected()) {
+    throw new Error("Wallet not connected");
+  }
+
+  if (tokenA === tokenB) {
+    throw new Error("Cannot create pool with identical assets");
+  }
+
+  try {
+      const gnoPackage: GnoPackage = {
+        name: "main",
+        path: "gno.land/r/demo/main",
+        files: [{
+          name: "main.gno",
+          body: `package main
+
+import (
+    "std"
+    "gno.land/r/matijamarjanovic/tokenhub"
+    "gno.land/r/matijamarjanovic/gnoxchange"
+)
+
+func main() {
+    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    
+    tokenA := tokenhub.GetToken("${tokenA}")
+    if tokenA == nil {
+        panic("token A not found")
+    }
+    tellerA := tokenA.CallerTeller()
+    tellerA.Approve(gnoxchangeAddr, ${amountA})
+
+    tokenB := tokenhub.GetToken("${tokenB}")
+    if tokenB == nil {
+        panic("token B not found")
+    }
+    tellerB := tokenB.CallerTeller()
+    tellerB.Approve(gnoxchangeAddr, ${amountB})
+
+    _, err := gnoxchange.CreatePool("${tokenA}", "${tokenB}", ${amountA}, ${amountB})
+    if err != nil {
+        panic(err)
+    }
+}`
+        }]
+      };
+      console.log(gnoPackage.files[0].body);
+
+    const tx = TransactionBuilder.create()
+      .messages(
+        makeMsgRunMessage({
+          caller: adenaService.getAddress(),
+            send: "",
+            package: gnoPackage
+          })
+        ).fee(1000000, 'ugnot')
+          .gasWanted(200000000)
+          .memo("")
+          .build();
+
+    const transactionRequest = {
+      tx: tx,
+      broadcastType: BroadcastType.COMMIT
+    };
+
+    const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    return response.code === 0;
+  } catch (error) {
+    console.error("Error creating pool:", error);
+    throw error;
+  }
+}
+
+
 

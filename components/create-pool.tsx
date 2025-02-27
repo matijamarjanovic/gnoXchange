@@ -1,4 +1,6 @@
 import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { AdenaService } from "@/app/services/adena-service"
+import { createPool } from "@/app/services/tx-service"
 import { Asset, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
 import { Button } from "@/components/ui/button"
@@ -10,64 +12,65 @@ import { Coins, WavesLadder } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface CreatePoolForm {
-  tokenA: string
-  tokenB: string
+  tokenA: string 
+  tokenB: string  
   amountA: string
   amountB: string
 }
 
 interface CreatePoolProps {
   onClose: () => void
-  onSubmit: (form: CreatePoolForm) => Promise<void>
 }
 
-export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
+export function CreatePool({ onClose }: CreatePoolProps) {
   const [createPoolForm, setCreatePoolForm] = useState<CreatePoolForm>({
     tokenA: '',
     tokenB: '',
     amountA: '',
-    amountB: ''
+    amountB: '',
   })
   const [assetAType, setAssetAType] = useState<Asset | null>(null)
   const [assetBType, setAssetBType] = useState<Asset | null>(null)
   const [tokens, setTokens] = useState<TokenDetails[]>([])
   const [showLPTokens, setShowLPTokens] = useState(false)
   const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
+  const [, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [fetchedTokens, fetchedBalances] = await Promise.all([
-          getAllTokens(),
-          getUserTokenBalances("g1ej0qca5ptsw9kfr64ey8jvfy9eacga6mpj2z0y") // TODO: Replace with actual user address when adena is connected
-        ])
-        
-        console.log("fetchedBalances", fetchedBalances)
-        const tokensWithBalances = fetchedTokens.filter(token => 
-          fetchedBalances.some(balance => balance.tokenKey === token.key)
-        )
-        
-        setTokens(tokensWithBalances)
-        setUserBalances(fetchedBalances)
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      }
+    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
+      setWalletAddress(event.detail.newAddress || '');
+      fetchData();
+    };
+    
+    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+    };
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [fetchedTokens, fetchedBalances] = await Promise.all([
+        getAllTokens(),
+        getUserTokenBalances(AdenaService.getInstance().getAddress())
+      ])
+      
+      const tokensWithBalances = fetchedTokens.filter(token => 
+        fetchedBalances.some(balance => balance.tokenKey === token.key)
+      )
+      
+      setTokens(tokensWithBalances)
+      setUserBalances(fetchedBalances)
+    } catch (error) {
+      console.error('Failed to fetch data:', error)
     }
+  }
+
+  useEffect(() => {
     fetchData()
   }, [])
 
-
-  // todo: when adena is connected, use the native coin from the user's account
-  const nativeCoin: Asset = {
-    type: 'coin',
-    denom: 'ugnot',
-    name: 'GNOT',
-    symbol: 'GNOT',
-    decimals: 6
-  }
-
   const assets: Asset[] = [
-    nativeCoin,
     ...tokens.map(token => ({
       type: 'token',
       path: token.key,
@@ -85,19 +88,63 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await onSubmit(createPoolForm)
+    try {
+      const success = await createPool(
+        createPoolForm.tokenA,
+        createPoolForm.tokenB,
+        parseInt(createPoolForm.amountA),
+        parseInt(createPoolForm.amountB),
+      )
+      
+      if (success) {
+        onClose()
+      }
+    } catch (error) {
+      console.error("Failed to create pool:", error)
+    }
+    
     setCreatePoolForm({
       tokenA: '',
       tokenB: '',
       amountA: '',
-      amountB: ''
+      amountB: '',
+
     })
   }
+
+  const isFormValid = () => {
+    return createPoolForm.tokenA !== '' && 
+           createPoolForm.tokenB !== '' && 
+           createPoolForm.amountA !== '' && 
+           createPoolForm.amountB !== '' &&
+           Number(createPoolForm.amountA) > 0 &&
+           Number(createPoolForm.amountB) > 0;
+  };
+
+  const getFilteredAssetsB = () => {
+    return filteredAssets.filter(asset => {
+      if (createPoolForm.tokenA === '') return true;
+      if (asset.type === 'coin' && assetAType?.type === 'coin') {
+        return asset.denom !== assetAType.denom;
+      }
+      return asset.type === 'coin' || asset.path !== createPoolForm.tokenA;
+    });
+  };
+
+  const getFilteredAssetsA = () => {
+    return filteredAssets.filter(asset => {
+      if (createPoolForm.tokenB === '') return true;
+      if (asset.type === 'coin' && assetBType?.type === 'coin') {
+        return asset.denom !== assetBType.denom;
+      }
+      return asset.type === 'coin' || asset.path !== createPoolForm.tokenB;
+    });
+  };
 
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Create New Pool</h2>
+        <h2 className="text-2xl font-bold">Create New Token Pool</h2>
         <div className="flex items-center gap-2">
           <Toggle
             variant="default"
@@ -136,7 +183,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
                 scrollbarWidth: 'none',
               }}
             >
-              {filteredAssets.map((asset, index) => {
+              {getFilteredAssetsA().map((asset, index) => {
                 const balance = userBalances.find(b => b.tokenKey === asset.path)
                 return (
                   <DropdownMenuItem 
@@ -144,7 +191,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
                     key={index} 
                     onClick={() => {
                       setAssetAType(asset)
-                      setCreatePoolForm(prev => ({...prev, tokenA: asset.path || ''}))
+                      setCreatePoolForm(prev => prev)
                     }}
                   >
                     <span>{asset.symbol}</span>
@@ -174,7 +221,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
                 scrollbarWidth: 'none',
               }}
             >
-              {filteredAssets.map((asset, index) => {
+              {getFilteredAssetsB().map((asset, index) => {
                 const balance = userBalances.find(b => b.tokenKey === asset.path)
                 return (
                   <DropdownMenuItem 
@@ -182,7 +229,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
                     key={index} 
                     onClick={() => {
                       setAssetBType(asset)
-                      setCreatePoolForm(prev => ({...prev, tokenB: asset.path || ''}))
+                      setCreatePoolForm(prev => prev)
                     }}
                   >
                     <span>{asset.symbol}</span>
@@ -220,6 +267,7 @@ export function CreatePool({ onClose, onSubmit }: CreatePoolProps) {
         <Button 
           type="submit" 
           className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          disabled={!isFormValid()}
         >
           <WavesLadder className="mr-2 h-4 w-4" />
           Create Pool

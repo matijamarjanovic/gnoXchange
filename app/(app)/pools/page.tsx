@@ -1,7 +1,7 @@
 'use client'
 
-import { getPoolsPage } from '@/app/queries/abci-queries'
-import { PoolInfo } from '@/app/types/types'
+import { getPoolsPage, getUserTokenBalances } from '@/app/queries/abci-queries'
+import { PoolInfo, TokenBalance } from '@/app/types/types'
 import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
@@ -12,18 +12,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { AdenaService } from '@/app/services/adena-service'
 import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreatePool } from '../../../components/create-pool'
 import { PaginationControls } from '../../../components/pagination-controls'
 import { SelectedPool } from '../../../components/selected-pool'
-interface CreatePoolForm {
-  tokenA: string
-  tokenB: string
-  amountA: string
-  amountB: string
-}
 
 export default function PoolsPage() {
   const [pools, setPools] = useState<PoolInfo[]>([])
@@ -35,6 +30,32 @@ export default function PoolsPage() {
   const [pageSize, setPageSize] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [fuse, setFuse] = useState<Fuse<PoolInfo> | null>(null)
+  const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
+  const [, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
+
+  useEffect(() => {
+    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
+      setWalletAddress(event.detail.newAddress || '');
+      fetchUserBalances();
+    };
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
+    };
+  }, []);
+
+  const fetchUserBalances = async () => {
+    try {
+      const address = AdenaService.getInstance().getAddress();
+      if (address) {
+        const balances = await getUserTokenBalances(address);
+        setUserBalances(balances);
+      }
+    } catch (error) {
+      console.error('Error fetching user balances:', error);
+    }
+  };
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -46,14 +67,12 @@ export default function PoolsPage() {
 
     const fetchPools = async () => {
       try {
-        // Fetch all pools at once
         const poolsData = await getPoolsPage(1, 10000)
         
         setPools(poolsData)
         setFilteredPools(poolsData)
         setSelectedPool(poolsData[0] || null)
 
-        // Initialize Fuse instance
         const fuseInstance = new Fuse(poolsData, {
           keys: [
             'tokenAInfo.key',
@@ -66,6 +85,8 @@ export default function PoolsPage() {
           minMatchCharLength: 2
         })
         setFuse(fuseInstance)
+        
+        await fetchUserBalances()
       } catch (error) {
         console.error('Error fetching pools:', error)
       } finally {
@@ -110,31 +131,24 @@ export default function PoolsPage() {
     return filteredPools.slice(startIndex, endIndex)
   }
 
-  const handleCreatePool = async (formData: CreatePoolForm) => {
-    try {
-      console.log('Creating pool with:', {
-        tokenA: formData.tokenA,
-        tokenB: formData.tokenB,
-        amountA: parseInt(formData.amountA),
-        amountB: parseInt(formData.amountB)
-      })
-      setIsCreatingPool(false)
-    } catch (error) {
-      console.error('Error creating pool:', error)
-    }
-  }
-
   const renderRightCard = () => {
     if (isCreatingPool) {
       return (
         <CreatePool
           onClose={() => setIsCreatingPool(false)}
-          onSubmit={handleCreatePool}
         />
       )
     }
 
     return selectedPool ? <SelectedPool pool={selectedPool} /> : null
+  }
+
+  const hasLPTokens = (pool: PoolInfo) => {
+    const lpSymbol = `LP-${pool.tokenAInfo.symbol}-${pool.tokenBInfo.symbol}`
+    return userBalances.some(balance => {
+      const lpTokenKey = balance.tokenKey.split(/\./).pop();
+      return lpTokenKey === lpSymbol && balance.balance > 0;
+    })
   }
 
   if (isLoading) {
@@ -196,7 +210,7 @@ export default function PoolsPage() {
             getCurrentPageItems().map((pool) => (
               <Card
                 key={pool.poolKey}
-                className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 ${
+                className={`p-4 cursor-pointer transition-colors bg-gray-800 text-gray-400 border-none shadow-lg hover:bg-gray-900 relative ${
                   selectedPool?.poolKey === pool.poolKey && !isCreatingPool ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => {
@@ -204,6 +218,11 @@ export default function PoolsPage() {
                   setIsCreatingPool(false)
                 }}
               >
+                {hasLPTokens(pool) && (
+                  <div className="absolute top-2 right-2 px-2 py-1 bg-blue-800 rounded-lg text-xs text-gray-300">
+                    LP
+                  </div>
+                )}
                 <h3 className="font-bold text-lg">{`${pool.tokenAInfo.symbol} ⇄ ${pool.tokenBInfo.symbol}`}</h3>
                 <div className="text-xs text-gray-400 space-y-1">
                   <div className="flex items-center gap-2">
