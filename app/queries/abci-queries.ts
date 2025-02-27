@@ -3,7 +3,7 @@ import { Asset, NFTDetails, PoolInfo, Ticket, TicketStatus, TokenBalance, TokenD
 
 const REALM_PATH = 'gno.land/r/matijamarjanovic/gnoxchange'
 const TOKENHUB_PATH = 'gno.land/r/matijamarjanovic/tokenhub'
-const gnoService = new GnoService()
+const gnoService = GnoService.getInstance()
 
 export async function getPoolCount(): Promise<number> {
   try {

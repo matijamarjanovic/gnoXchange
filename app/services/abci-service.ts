@@ -4,13 +4,22 @@ import { GnoJSONRPCProvider } from '@gnolang/gno-js-client'
 export class GnoService {
   private provider: GnoJSONRPCProvider
   private providers: GnoJSONRPCProvider[]
+  private static instance: GnoService | null = null
   private static defaultRpcUrls = [
     'http://localhost:26657/',
+    'https://rpc.gno.land:443/'
   ]
 
-  constructor(rpcUrls: string[] = GnoService.defaultRpcUrls) {
+  private constructor(rpcUrls: string[] = GnoService.defaultRpcUrls) {
     this.providers = rpcUrls.map(url => new GnoJSONRPCProvider(url))
     this.provider = this.providers[0]
+  }
+
+  public static getInstance(rpcUrls?: string[]): GnoService {
+    if (!GnoService.instance) {
+      GnoService.instance = new GnoService(rpcUrls)
+    }
+    return GnoService.instance
   }
 
   changeProvider(index: number) {

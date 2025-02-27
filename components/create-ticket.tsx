@@ -49,21 +49,41 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
     decimals: 6
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [fetchedTokens, fetchedBalances] = await Promise.all([
-          getAllTokens(),
-          getUserTokenBalances(AdenaService.getInstance().getAddress() || '')
-        ])
-        
-        setTokens(fetchedTokens)
-        setUserBalances(fetchedBalances)
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      }
+  const fetchData = async () => {
+    try {
+      const [fetchedTokens, fetchedBalances] = await Promise.all([
+        getAllTokens(),
+        getUserTokenBalances(AdenaService.getInstance().getAddress() || '')
+      ])
+      
+      setTokens(fetchedTokens)
+      setUserBalances(fetchedBalances)
+    } catch (error) {
+      console.error('Failed to fetch data:', error)
     }
+  }
+
+  useEffect(() => {
     fetchData()
+
+    const handleAddressChange = () => {
+      fetchData()
+      setCreateTicketForm({
+        tokenInKey: '',
+        tokenOutKey: '',
+        amountIn: '',
+        minAmountOut: '',
+        expiryHours: ''
+      })
+      setAssetInType(null)
+      setAssetOutType(null)
+    }
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange)
+
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange)
+    }
   }, [])
 
   const assetsIn: Asset[] = [
