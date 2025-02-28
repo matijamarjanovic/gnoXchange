@@ -41,7 +41,7 @@ export function CreatePool({ onClose }: CreatePoolProps) {
       setWalletAddress(event.detail.newAddress || '');
       fetchData();
     };
-    
+
     window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
     return () => {
       window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
@@ -191,7 +191,10 @@ export function CreatePool({ onClose }: CreatePoolProps) {
                     key={index} 
                     onClick={() => {
                       setAssetAType(asset)
-                      setCreatePoolForm(prev => prev)
+                      setCreatePoolForm(prev => ({
+                        ...prev,
+                        tokenA: asset.path!
+                      }))
                     }}
                   >
                     <span>{asset.symbol}</span>
@@ -229,7 +232,10 @@ export function CreatePool({ onClose }: CreatePoolProps) {
                     key={index} 
                     onClick={() => {
                       setAssetBType(asset)
-                      setCreatePoolForm(prev => prev)
+                      setCreatePoolForm(prev => ({
+                        ...prev,
+                        tokenB: asset.path!
+                      }))
                     }}
                   >
                     <span>{asset.symbol}</span>
