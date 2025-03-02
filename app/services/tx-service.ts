@@ -3,6 +3,8 @@ import { GnoPackage } from "@/app/types/adena-types";
 import { BroadcastType, TransactionBuilder, makeMsgCallMessage, makeMsgRunMessage } from "@adena-wallet/sdk";
 import { Ticket } from "../types/types";
 
+const GNO_EXCHANGE_PATH = "gno.land/r/matijamarjanovic/gnoxchange"
+
 export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
   const adenaService = AdenaService.getInstance();
   let amount = 0
@@ -18,7 +20,7 @@ export async function approveAllTokens(revokeApproval?: boolean): Promise<boolea
 
   const gnoPackage: GnoPackage = {
     name: "main",
-    path: "gno.land/r/demo/main",
+    path : "",
     files: [
       {
         name: "main.gno",
@@ -31,7 +33,7 @@ import (
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
 
     allTokensStr := tokenhub.GetAllTokens()
     tokenKeys := strings.Split(allTokensStr, ",")
@@ -94,7 +96,7 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
 
   const gnoPackage: GnoPackage = {
     name: "main",
-    path: "gno.land/r/demo/main",
+    path : "",
     files: [
       {
         name: "main.gno",
@@ -106,7 +108,7 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
   )
 
   func main() {
-      gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+      gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
       
       tokenAmounts := map[string]int64{${tokenAmountsStr}}
 
@@ -159,7 +161,7 @@ export async function fulfillTicket(ticket: Ticket, amountOut: number): Promise<
 
   const gnoPackage: GnoPackage = {
     name: "main",
-    path: "gno.land/r/demo/main",
+    path : "",
     files: [{
       name: "main.gno",
       body: `package main
@@ -167,11 +169,11 @@ export async function fulfillTicket(ticket: Ticket, amountOut: number): Promise<
 import (
     "std"
     "gno.land/r/matijamarjanovic/tokenhub"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
 
     if "${ticket.assetOut.type}" == "token" {
         token := tokenhub.GetToken("${ticket.assetOut.path}")
@@ -262,10 +264,10 @@ export async function createTicket(
         .build();
     } else {
       let createFunction: string;
-      const imports = `    "std"\n    "gno.land/r/matijamarjanovic/gnoxchange"\n    "gno.land/r/matijamarjanovic/tokenhub"`;
+      const imports = `    "std"\n    "${GNO_EXCHANGE_PATH}"\n    "gno.land/r/matijamarjanovic/tokenhub"`;
       
       const approvalCode = `
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     token := tokenhub.GetToken("${assetInPath}")
     if token == nil {
         panic("token not found")
@@ -283,7 +285,7 @@ export async function createTicket(
 
       const gnoPackage: GnoPackage = {
         name: "main",
-        path: "gno.land/r/demo/main",
+        path : "",
         files: [{
           name: "main.gno",
           body: `package main
@@ -384,19 +386,19 @@ export async function createNFTTicket(
   try {
     const gnoPackage: GnoPackage = {
       name: "main",
-      path: "gno.land/r/demo/main",
+      path : "",
       files: [{
         name: "main.gno",
         body: `package main
 
 import (
     "std"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
     "gno.land/r/matijamarjanovic/tokenhub"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     nft := tokenhub.GetNFT("${nftPath}")
     if nft == nil {
         panic("NFT not found")
@@ -476,7 +478,7 @@ export async function buyNFT(
     } else {
       const gnoPackage: GnoPackage = {
         name: "main",
-        path: "gno.land/r/demo/main",
+        path : "",
         files: [{
           name: "main.gno",
           body: `package main
@@ -484,11 +486,11 @@ export async function buyNFT(
 import (
     "std"
     "gno.land/r/matijamarjanovic/tokenhub"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     token := tokenhub.GetToken("${paymentPath}")
     if token == nil {
         panic("token not found")
@@ -553,7 +555,7 @@ export async function createPool(
   try {
       const gnoPackage: GnoPackage = {
         name: "main",
-        path: "gno.land/r/demo/main",
+        path: "",
         files: [{
           name: "main.gno",
           body: `package main
@@ -561,11 +563,11 @@ export async function createPool(
 import (
     "std"
     "gno.land/r/matijamarjanovic/tokenhub"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     
     tokenA := tokenhub.GetToken("${tokenA}")
     if tokenA == nil {
@@ -608,6 +610,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
+    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error creating pool:", error);
@@ -631,7 +634,7 @@ export async function addLiquidity(
     
     const gnoPackage: GnoPackage = {
       name: "main",
-      path: "gno.land/r/demo/main",
+      path: "",
       files: [{
         name: "main.gno",
         body: `package main
@@ -639,11 +642,11 @@ export async function addLiquidity(
 import (
     "std"
     "gno.land/r/matijamarjanovic/tokenhub"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("gno.land/r/matijamarjanovic/gnoxchange")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     
     tokenA := tokenhub.GetToken("${tokenA}")
     if tokenA == nil {
@@ -711,7 +714,7 @@ export async function withdrawLiquidity(
         makeMsgCallMessage({
           caller: adenaService.getAddress(),
           send: "",
-          pkg_path: "gno.land/r/matijamarjanovic/gnoxchange",
+          pkg_path: GNO_EXCHANGE_PATH,
           func: "WithdrawLiquidity",
           args: [poolKey, lpAmount.toString()]
         })
@@ -747,12 +750,10 @@ export async function swap(
     throw new Error("Wallet not connected");
   }
 
-  try {
-    const gnoxchangeAddr = "gno.land/r/matijamarjanovic/gnoxchange"
-    
+  try {    
     const gnoPackage: GnoPackage = {
       name: "main",
-      path: "gno.land/r/demo/main",
+      path: "",
       files: [{
         name: "main.gno",
         body: `package main
@@ -760,11 +761,11 @@ export async function swap(
 import (
     "std"
     "gno.land/r/matijamarjanovic/tokenhub"
-    "gno.land/r/matijamarjanovic/gnoxchange"
+    "${GNO_EXCHANGE_PATH}"
 )
 
 func main() {
-    gnoxchangeAddr := std.DerivePkgAddr("${gnoxchangeAddr}")
+    gnoxchangeAddr := std.DerivePkgAddr("${GNO_EXCHANGE_PATH}")
     
     tokenIn := tokenhub.GetToken("${tokenInKey}")
     if tokenIn == nil {

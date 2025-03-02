@@ -92,8 +92,8 @@ export function CreatePool({ onClose }: CreatePoolProps) {
       const success = await createPool(
         createPoolForm.tokenA,
         createPoolForm.tokenB,
-        parseInt(createPoolForm.amountA),
-        parseInt(createPoolForm.amountB),
+        parseInt(createPoolForm.amountA.replaceAll(' ', '')),
+        parseInt(createPoolForm.amountB.replaceAll(' ', '')),
       )
       
       if (success) {
@@ -117,8 +117,8 @@ export function CreatePool({ onClose }: CreatePoolProps) {
            createPoolForm.tokenB !== '' && 
            createPoolForm.amountA !== '' && 
            createPoolForm.amountB !== '' &&
-           Number(createPoolForm.amountA) > 0 &&
-           Number(createPoolForm.amountB) > 0;
+           Number(createPoolForm.amountA.replaceAll(' ', '')) > 0 &&
+           Number(createPoolForm.amountB.replaceAll(' ', '')) > 0;
   };
 
   const getFilteredAssetsB = () => {
