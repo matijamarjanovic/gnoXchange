@@ -86,7 +86,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   alt=""
                   width={100}
                   height={100}
-                  className=""
+                  className="w-full h-auto"
                 />
               </div>
             ))}

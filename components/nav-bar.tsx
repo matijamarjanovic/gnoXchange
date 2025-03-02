@@ -29,6 +29,7 @@ export function Navbar({ walletAddress, onWalletToggleAction, isLoading }: Navba
             >
               <div className="flex items-center">
                 <Image
+                  priority
                   src="/gnoxchange.svg"
                   alt=""
                   width={160}
