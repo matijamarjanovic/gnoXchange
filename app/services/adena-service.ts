@@ -9,6 +9,10 @@ export class AdenaService {
 
   private constructor() {
     this.sdk = AdenaSDK.createAdenaWallet();
+    
+    if (this.isConnected()) {
+      this.reconnectWallet().catch(console.error);
+    }
   }
 
   public static getInstance(): AdenaService {
@@ -24,6 +28,27 @@ export class AdenaService {
       detail: { isLoading: loading }
     });
     window.dispatchEvent(event);
+  }
+
+  private async reconnectWallet(): Promise<void> {
+    try {
+      this.setLoading(true);
+      await this.sdk.connectWallet();
+      
+      this.sdk.onChangeAccount({ callback: (address: string) => {
+        if (address) {
+          this.updateStoredAddress(address);
+        } else {
+          this.clearStoredAddress();
+        }
+      }});
+
+    } catch (error) {
+      console.error('Failed to reconnect wallet:', error);
+      this.clearStoredAddress();
+    } finally {
+      this.setLoading(false);
+    }
   }
 
   public async connectWallet(): Promise<string> {
@@ -58,7 +83,7 @@ export class AdenaService {
   public async disconnectWallet(): Promise<void> {
     try {
       this.setLoading(true);
-      await this.sdk.disconnectWallet();
+      this.sdk.disconnectWallet();
       this.clearStoredAddress();
     } catch (error) {
       console.error('Failed to disconnect wallet:', error);
