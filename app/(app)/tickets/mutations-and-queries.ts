@@ -1,10 +1,11 @@
-import { getAllTokens, getUserTokenBalances } from '@/app/queries/abci-queries'
+import { getAllTokens, getUserTokenBalances, getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { createTicket } from '@/app/services/tx-service'
-import { TokenBalance, TokenDetails } from '@/app/types/types'
+import { TokenBalance, TokenDetails, Ticket } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import Fuse from 'fuse.js'
 
 interface CreateTicketVariables {
   assetInType: 'coin' | 'token'
@@ -103,4 +104,50 @@ export function useTokensAndBalances() {
       ])
     }
   }
+}
+
+interface UseTicketsQueryParams {
+  page: number;
+  pageSize: number;
+}
+
+export function useTicketsQuery({ page, pageSize }: UseTicketsQueryParams) {
+  return useQuery<Ticket[]>({
+    queryKey: ['tickets', page, pageSize],
+    queryFn: async () => {
+      const tickets = await getOpenTicketsPage(page, pageSize);
+      return [...tickets].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 30, // 30 seconds
+  })
+}
+
+export function useTicketSearch(tickets: Ticket[]) {
+  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null);
+
+  useEffect(() => {
+    const fuseInstance = new Fuse(tickets, {
+      keys: [
+        'assetIn.tokenHubPath',
+        'assetIn.name',
+        'assetIn.symbol',
+        'assetIn.type',
+        'assetOut.tokenHubPath',
+        'assetOut.name',
+        'assetOut.symbol',
+        'assetOut.type',
+        'id',
+        'creator'
+      ],
+      threshold: 0.4,
+      shouldSort: true,
+      minMatchCharLength: 2
+    });
+    setFuse(fuseInstance);
+  }, [tickets]);
+
+  return fuse;
 }

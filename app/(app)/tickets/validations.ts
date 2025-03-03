@@ -1,6 +1,8 @@
 import { Asset } from "@/app/types/types";
 import { ValidationResult } from "@/app/types/validation.types";
 import { toast } from "@/hooks/use-toast";
+import { Ticket } from "@/app/types/types";
+import Fuse from "fuse.js";
 
 interface TicketValidationParams {
   assetInType: Asset | null;
@@ -8,6 +10,12 @@ interface TicketValidationParams {
   amountIn: string;
   minAmountOut: string;
   expiryHours: string;
+}
+
+interface FilterTicketsParams {
+  tickets: Ticket[];
+  searchQuery: string;
+  fuse: Fuse<Ticket> | null;
 }
 
 export function validateTicketCreation({
@@ -93,4 +101,17 @@ export function showValidationError(error: { title: string; description: string 
     title: error.title,
     description: error.description
   });
+}
+
+export function filterTickets({ tickets, searchQuery, fuse }: FilterTicketsParams): Ticket[] {
+  if (!searchQuery) {
+    return tickets;
+  }
+
+  if (fuse) {
+    const results = fuse.search(searchQuery);
+    return results.map(result => result.item);
+  }
+
+  return tickets;
 } 

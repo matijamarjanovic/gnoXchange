@@ -2,7 +2,6 @@
 
 import { CreateTicket } from '@/app/(app)/tickets/create-ticket'
 import { SelectedTicket } from '@/app/(app)/tickets/selected-ticket'
-import { getOpenTicketsPage } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
@@ -10,37 +9,26 @@ import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
+import { useTicketSearch, useTicketsQuery } from './mutations-and-queries'
+import { filterTickets } from './validations'
 
 export default function TicketsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
-  const [isCreatingTicket, setIsCreatingTicket] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
-  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+  const [isCreatingTicket, setIsCreatingTicket] = useState(false)
 
-  const refreshTickets = useCallback(async () => {
-    try {
-      const ticketsData = await getOpenTicketsPage(1, 10000)
-      const sortedTickets = [...ticketsData].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      
-      setTickets(sortedTickets)
-      setFilteredTickets(sortedTickets)
-      setSelectedTicket(sortedTickets[0] || null)
-
-    } catch (error) {
-      console.error('Error refreshing tickets:', error)
-    }
-  }, [])
+  const { data: tickets = [], isLoading } = useTicketsQuery({ 
+    page: currentPage, 
+    pageSize 
+  })
+  
+  const fuse = useTicketSearch(tickets)
+  const filteredTickets = filterTickets({ tickets, searchQuery, fuse })
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -50,51 +38,6 @@ export default function TicketsPage() {
       return Math.floor((containerHeight - searchBarHeight) / cardHeight)
     }
 
-    const fetchTickets = async () => {
-      try {
-        const ticketsData = await getOpenTicketsPage(1, 10000)
-        
-        const sortedTickets = [...ticketsData].sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        
-        setTickets(sortedTickets)
-        setFilteredTickets(sortedTickets)
-        setSelectedTicket(sortedTickets[0] || null)
-
-        const fuseInstance = new Fuse(sortedTickets, {
-          keys: [
-            'assetIn.tokenHubPath',
-            'assetIn.name',
-            'assetIn.symbol',
-            'assetIn.type',
-            'assetOut.tokenHubPath',
-            'assetOut.name',
-            'assetOut.symbol',
-            'assetOut.type',
-            'id',
-            'creator'
-          ],
-          threshold: 0.4,
-          shouldSort: true,
-          minMatchCharLength: 2
-        })
-        setFuse(fuseInstance)
-      } catch (error) {
-        console.error('Error fetching tickets:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const initializeTickets = () => {
-      const calculatedPageSize = calculatePageSize()
-      setPageSize(calculatedPageSize)
-      fetchTickets()
-    }
-
-    initializeTickets()
-
     const handleResize = () => {
       const newPageSize = calculatePageSize()
       if (newPageSize !== pageSize) {
@@ -102,29 +45,10 @@ export default function TicketsPage() {
       }
     }
 
-    const handleAddressChange = () => {
-      refreshTickets()
-    }
-
+    handleResize()
     window.addEventListener('resize', handleResize)
-    window.addEventListener('adenaAddressChanged', handleAddressChange)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      window.removeEventListener('adenaAddressChanged', handleAddressChange)
-    }
-  }, [pageSize, refreshTickets])
-
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredTickets(tickets)
-      return
-    }
-
-    if (fuse) {
-      const results = fuse.search(searchQuery)
-      setFilteredTickets(results.map(result => result.item))
-    }
-  }, [searchQuery, tickets, fuse])
+    return () => window.removeEventListener('resize', handleResize)
+  }, [pageSize])
 
   const getCurrentPageItems = useCallback(() => {
     const startIndex = (currentPage - 1) * pageSize
@@ -137,7 +61,6 @@ export default function TicketsPage() {
       return (
         <CreateTicket
           onCancelAction={() => setIsCreatingTicket(false)}
-          onSuccess={refreshTickets}
         />
       )
     }
@@ -145,16 +68,9 @@ export default function TicketsPage() {
     return selectedTicket ? (
       <SelectedTicket 
         ticket={selectedTicket} 
-        onSuccess={refreshTickets}
       />
     ) : null
   }
-
-  useEffect(() => {
-    if (getCurrentPageItems().length === 0 && !isCreatingTicket) {
-      setIsCreatingTicket(true);
-    }
-  }, [isCreatingTicket, getCurrentPageItems]);
 
   if (isLoading) {
     return (

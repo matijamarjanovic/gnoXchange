@@ -40,6 +40,7 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
   const { tokens, balances, isLoading, refetch } = useTokensAndBalances()
   const createTicketMutation = useCreateTicketMutation(onSuccess)
 
+  // todo: use abci queries
   const nativeCoin: Asset = {
     type: 'coin',
     denom: 'ugnot',
