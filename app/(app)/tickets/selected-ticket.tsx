@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card"
 import { Handshake, X } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../components/ui/button"
-import { useCancelTicketMutation, useFulfillTicketMutation, useWalletAddress } from "./mutations-and-queries"
+import { useCancelTicketMutation, useFulfillTicketMutation } from "./mutations-and-queries"
+import { useWalletAddress } from "@/hooks/use-wallet-address"
 
 interface SelectedTicketProps {
   ticket: Ticket

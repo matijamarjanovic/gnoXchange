@@ -2,7 +2,7 @@
 
 import { CreateTicket } from '@/app/(app)/tickets/create-ticket'
 import { SelectedTicket } from '@/app/(app)/tickets/selected-ticket'
-import { AdenaService } from '@/app/services/adena-service'
+import { useWalletAddress } from '@/hooks/use-wallet-address'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { NoDataMessage } from '@/components/no-data-mess'
@@ -21,6 +21,7 @@ export default function TicketsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isCreatingTicket, setIsCreatingTicket] = useState(false)
+  const walletAddress = useWalletAddress()
 
   const { data: tickets = [], isLoading } = useTicketsQuery({ 
     page: currentPage, 
@@ -31,10 +32,12 @@ export default function TicketsPage() {
   const filteredTickets = filterTickets({ tickets, searchQuery, fuse })
 
   useEffect(() => {
-    if (!isLoading && filteredTickets.length > 0 && !selectedTicket && !isCreatingTicket) {
-      setSelectedTicket(filteredTickets[0])
-    }else{
-      setIsCreatingTicket(true)
+    if (!isLoading) {
+      if (filteredTickets.length > 0 && !selectedTicket && !isCreatingTicket) {
+        setSelectedTicket(filteredTickets[0])
+      } else if (filteredTickets.length === 0 && !isCreatingTicket) {
+        setIsCreatingTicket(true)
+      }
     }
   }, [filteredTickets, isLoading, selectedTicket, isCreatingTicket])
 
@@ -169,7 +172,7 @@ export default function TicketsPage() {
                         : `${ticket.assetIn.symbol || ticket.assetIn.denom} → ${ticket.assetOut.symbol || ticket.assetOut.denom}`
                       }
                     </span>
-                    {ticket.creator === AdenaService.getInstance().getAddress() && ( 
+                    {ticket.creator === walletAddress && ( 
                       <span className="px-2 py-0.5 text-xs bg-gray-700 rounded-md text-gray-400">Owner</span>
                     )}
                   </div>

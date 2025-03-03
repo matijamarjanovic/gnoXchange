@@ -126,9 +126,14 @@ export function useTicketsQuery({ page, pageSize }: UseTicketsQueryParams) {
 }
 
 export function useTicketSearch(tickets: Ticket[]) {
-  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null);
+  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
 
   useEffect(() => {
+    if (!tickets.length) {
+      setFuse(null)
+      return
+    }
+
     const fuseInstance = new Fuse(tickets, {
       keys: [
         'assetIn.tokenHubPath',
@@ -145,11 +150,11 @@ export function useTicketSearch(tickets: Ticket[]) {
       threshold: 0.4,
       shouldSort: true,
       minMatchCharLength: 2
-    });
-    setFuse(fuseInstance);
-  }, [tickets]);
+    })
+    setFuse(fuseInstance)
+  }, [tickets.length, tickets]) // Only recreate Fuse when tickets array length changes
 
-  return fuse;
+  return fuse
 }
 
 interface FulfillTicketVariables {
@@ -215,22 +220,4 @@ export function useCancelTicketMutation(onSuccess?: () => void) {
       })
     }
   })
-}
-
-export function useWalletAddress() {
-  const [address, setAddress] = useState(AdenaService.getInstance().getAddress())
-
-  useEffect(() => {
-    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
-      setAddress(event.detail.newAddress || '')
-    }
-
-    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener)
-
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener)
-    }
-  }, [])
-
-  return address
 }
