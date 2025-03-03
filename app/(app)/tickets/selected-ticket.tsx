@@ -1,94 +1,40 @@
 'use client'
 
-import { AdenaService } from "@/app/services/adena-service"
-import { cancelTicket, fulfillTicket } from "@/app/services/tx-service"
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { FormattedAmount } from "@/components/formatted-amount"
 import { TradeConfirmationDialog } from "@/components/p2p-confirm-dialog"
 import { Card } from "@/components/ui/card"
-import { toast } from "@/hooks/use-toast"
 import { Handshake, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "../../../components/ui/button"
+import { useCancelTicketMutation, useFulfillTicketMutation, useWalletAddress } from "./mutations-and-queries"
 
 interface SelectedTicketProps {
   ticket: Ticket
-  onSuccess?: () => Promise<void>
+  onSuccess?: () => void
 }
 
 export function SelectedTicket({ ticket, onSuccess }: SelectedTicketProps) {
-  const [isTrading, setIsTrading] = useState(false)
   const [showTradeDialog, setShowTradeDialog] = useState(false)
-  const [walletAddress, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
+  const walletAddress = useWalletAddress()
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
 
-  useEffect(() => {
-    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
-      setWalletAddress(event.detail.newAddress || '');
-    };
-
-    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    };
-  }, []);
+  const fulfillMutation = useFulfillTicketMutation(onSuccess)
+  const cancelMutation = useCancelTicketMutation(onSuccess)
 
   const handleTrade = () => {
     setShowTradeDialog(true)
   }
 
   const handleTradeConfirm = async (amount: number) => {
-    try {
-      setIsTrading(true)
-      const success = await fulfillTicket(ticket, amount)
-
-      if (success) {
-        toast({
-          title: "Trade successful",
-          description: "Your trade has been completed.",
-          variant: "default"
-        })
-        await onSuccess?.()
-      }
-    } catch (error) {
-      console.error('Trade failed:', error)
-      toast({
-        title: "Trade failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      })
-    } finally {
-      setIsTrading(false)
-      setShowTradeDialog(false)
-    }
+    await fulfillMutation.mutateAsync({ ticket, amount })
+    setShowTradeDialog(false)
   }
 
   const handleCancelTicket = async () => {
-    try {
-      setIsTrading(true)
-      const success = await cancelTicket(ticket)
-
-      if (success) {
-        toast({
-          title: "Ticket cancelled",
-          description: "Your ticket has been cancelled successfully.",
-          variant: "default"
-        })
-        await onSuccess?.()
-      }
-    } catch (error) {
-      console.error('Cancel failed:', error)
-      toast({
-        title: "Cancel failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      })
-    } finally {
-      setIsTrading(false)
-    }
+    await cancelMutation.mutateAsync(ticket)
   }
 
   return (
@@ -149,17 +95,17 @@ export function SelectedTicket({ ticket, onSuccess }: SelectedTicketProps) {
               ? 'bg-red-700/80 hover:bg-red-600 text-gray-100'
               : 'bg-blue-700 hover:bg-blue-600 text-gray-300'
           }`}
-          disabled={isTrading}
+          disabled={fulfillMutation.isPending || cancelMutation.isPending}
         >
           {walletAddress === ticket.creator ? (
             <>
               <X className="mr-2 h-4 w-4" />
-              Cancel Ticket
+              {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Ticket'}
             </>
           ) : (
             <>
-              <Handshake className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
-              {isTrading ? 'Swapping...' : 'Swap'}
+              <Handshake className={`mr-2 h-4 w-4 transition-transform duration-500 ${fulfillMutation.isPending ? 'scale-125' : ''}`} />
+              {fulfillMutation.isPending ? 'Swapping...' : 'Swap'}
             </>
           )}
         </Button>
@@ -167,7 +113,7 @@ export function SelectedTicket({ ticket, onSuccess }: SelectedTicketProps) {
       <TradeConfirmationDialog
         isOpen={showTradeDialog}
         onClose={() => setShowTradeDialog(false)}
-        onConfirm={(amount) => handleTradeConfirm(amount)}
+        onConfirm={handleTradeConfirm}
         ticket={ticket}
       />
     </Card>

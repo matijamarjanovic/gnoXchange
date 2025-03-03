@@ -56,18 +56,31 @@ export default function TicketsPage() {
     return filteredTickets.slice(startIndex, endIndex)
   }, [currentPage, pageSize, filteredTickets])
 
+  const handleTicketAction = useCallback(() => {
+    const items = getCurrentPageItems()
+    if (items.length > 0) {
+      setSelectedTicket(items[0])
+      setIsCreatingTicket(false)
+    } else {
+      setSelectedTicket(null)
+      setIsCreatingTicket(true)
+    }
+  }, [getCurrentPageItems])
+
   const renderRightCard = () => {
     if (isCreatingTicket) {
       return (
         <CreateTicket
           onCancelAction={() => setIsCreatingTicket(false)}
+          onSuccess={() => handleTicketAction()}
         />
       )
     }
 
     return selectedTicket ? (
       <SelectedTicket 
-        ticket={selectedTicket} 
+        ticket={selectedTicket}
+        onSuccess={handleTicketAction}
       />
     ) : null
   }

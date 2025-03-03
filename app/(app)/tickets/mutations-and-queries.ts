@@ -1,11 +1,11 @@
-import { getAllTokens, getUserTokenBalances, getOpenTicketsPage } from '@/app/queries/abci-queries'
+import { getAllTokens, getOpenTicketsPage, getUserTokenBalances } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
-import { createTicket } from '@/app/services/tx-service'
-import { TokenBalance, TokenDetails, Ticket } from '@/app/types/types'
+import { cancelTicket, createTicket, fulfillTicket } from '@/app/services/tx-service'
+import { Ticket, TokenBalance, TokenDetails } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
 import Fuse from 'fuse.js'
+import { useEffect, useState } from 'react'
 
 interface CreateTicketVariables {
   assetInType: 'coin' | 'token'
@@ -17,7 +17,7 @@ interface CreateTicketVariables {
   expiryHours: number
 }
 
-export function useCreateTicketMutation(onSuccess?: () => Promise<void>) {
+export function useCreateTicketMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -47,7 +47,7 @@ export function useCreateTicketMutation(onSuccess?: () => Promise<void>) {
       
       await queryClient.invalidateQueries({ queryKey: ['tickets'] })
       
-      await onSuccess?.()
+      onSuccess?.()
     },
     onError: (error: Error) => {
       toast({
@@ -121,7 +121,7 @@ export function useTicketsQuery({ page, pageSize }: UseTicketsQueryParams) {
       );
     },
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: 1000 * 30, 
   })
 }
 
@@ -150,4 +150,87 @@ export function useTicketSearch(tickets: Ticket[]) {
   }, [tickets]);
 
   return fuse;
+}
+
+interface FulfillTicketVariables {
+  ticket: Ticket
+  amount: number
+}
+
+export function useFulfillTicketMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ ticket, amount }: FulfillTicketVariables) => {
+      const success = await fulfillTicket(ticket, amount)
+      if (!success) {
+        throw new Error('Failed to fulfill ticket')
+      }
+      return success
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Trade successful",
+        description: "Your trade has been completed.",
+        variant: "default"
+      })
+      await queryClient.invalidateQueries({ queryKey: ['tickets'] })
+      onSuccess?.()
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Trade failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      })
+    }
+  })
+}
+
+export function useCancelTicketMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ticket: Ticket) => {
+      const success = await cancelTicket(ticket)
+      if (!success) {
+        throw new Error('Failed to cancel ticket')
+      }
+      return success
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Ticket cancelled",
+        description: "Your ticket has been cancelled successfully.",
+        variant: "default"
+      })
+      await queryClient.invalidateQueries({ queryKey: ['tickets'] })
+      onSuccess?.()
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Cancel failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      })
+    }
+  })
+}
+
+export function useWalletAddress() {
+  const [address, setAddress] = useState(AdenaService.getInstance().getAddress())
+
+  useEffect(() => {
+    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
+      setAddress(event.detail.newAddress || '')
+    }
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener)
+    }
+  }, [])
+
+  return address
 }

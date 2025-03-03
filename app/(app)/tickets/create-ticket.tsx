@@ -22,7 +22,7 @@ interface CreateTicketForm {
 
 interface CreateTicketProps {
   onCancelAction: () => void
-  onSuccess?: () => Promise<void>
+  onSuccess?: () => void
 }
 
 export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
