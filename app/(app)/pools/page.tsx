@@ -1,7 +1,6 @@
 'use client'
 
-import { getPoolsPage, getUserTokenBalances } from '@/app/queries/abci-queries'
-import { PoolInfo, TokenBalance } from '@/app/types/types'
+import { PoolInfo } from '@/app/types/types'
 import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
@@ -12,98 +11,39 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { AdenaService } from '@/app/services/adena-service'
 import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { CreatePool } from './create-pool'
 import { PaginationControls } from '../../../components/pagination-controls'
+import { CreatePool } from './create-pool'
+import { usePoolsQuery, useTokensAndBalances } from './mutations-and-queries'
 import { SelectedPool } from './selected-pool'
 
 export default function PoolsPage() {
-  const [pools, setPools] = useState<PoolInfo[]>([])
-  const [filteredPools, setFilteredPools] = useState<PoolInfo[]>([])
-  const [selectedPool, setSelectedPool] = useState<PoolInfo | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isCreatingPool, setIsCreatingPool] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedPool, setSelectedPool] = useState<PoolInfo | null>(null)
+  const [isCreatingPool, setIsCreatingPool] = useState(false)
   const [fuse, setFuse] = useState<Fuse<PoolInfo> | null>(null)
-  const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
-  const [, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
+  const [filteredPools, setFilteredPools] = useState<PoolInfo[]>([])
+
+  const { data: pools, isLoading } = usePoolsQuery({ 
+    page: currentPage, 
+    pageSize 
+  })
+
+  const { balances } = useTokensAndBalances()
 
   useEffect(() => {
-    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
-      setWalletAddress(event.detail.newAddress || '');
-      fetchUserBalances();
-    };
-
-    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    };
-  }, []);
-
-  const fetchUserBalances = async () => {
-    try {
-      const address = AdenaService.getInstance().getAddress();
-      if (address) {
-        const balances = await getUserTokenBalances(address);
-        setUserBalances(balances);
-      }
-    } catch (error) {
-      console.error('Error fetching user balances:', error);
-    }
-  };
-
-  useEffect(() => {
-    const calculatePageSize = () => {
-      const cardHeight = 116 
-      const searchBarHeight = 40
-      const containerHeight = window.innerHeight - 64 
-      return Math.floor((containerHeight - searchBarHeight) / cardHeight)
-    }
-
-    const fetchPools = async () => {
-      try {
-        const poolsData = await getPoolsPage(1, 10000)
-        
-        setPools(poolsData)
-        setFilteredPools(poolsData)
-        setSelectedPool(poolsData[0] || null)
-
-        const fuseInstance = new Fuse(poolsData, {
-          keys: [
-            'tokenAInfo.key',
-            'tokenAInfo.name',
-            'tokenBInfo.key',
-            'tokenBInfo.name',
-          ],
-          threshold: 0.4,
-          shouldSort: true,
-          minMatchCharLength: 2
-        })
-        setFuse(fuseInstance)
-        
-        await fetchUserBalances()
-      } catch (error) {
-        console.error('Error fetching pools:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const initializePools = () => {
-      const calculatedPageSize = calculatePageSize()
-      setPageSize(calculatedPageSize)
-      fetchPools()
-    }
-
-    initializePools()
+    const cardHeight = 116 
+    const searchBarHeight = 40
+    const containerHeight = window.innerHeight - 64 
+    const calculatedPageSize = Math.floor((containerHeight - searchBarHeight) / cardHeight)
+    setPageSize(calculatedPageSize)
 
     const handleResize = () => {
-      const newPageSize = calculatePageSize()
+      const newPageSize = Math.floor((window.innerHeight - 64 - searchBarHeight) / cardHeight)
       if (newPageSize !== pageSize) {
         setPageSize(newPageSize)
       }
@@ -114,8 +54,27 @@ export default function PoolsPage() {
   }, [pageSize])
 
   useEffect(() => {
+    if (!pools) return
+
+    const fuseInstance = new Fuse(pools, {
+      keys: [
+        'tokenAInfo.key',
+        'tokenAInfo.name',
+        'tokenBInfo.key',
+        'tokenBInfo.name',
+      ],
+      threshold: 0.4,
+      shouldSort: true,
+      minMatchCharLength: 2
+    })
+    setFuse(fuseInstance)
+    setFilteredPools(pools)
+    setSelectedPool(pools[0] || null)
+  }, [pools])
+
+  useEffect(() => {
     if (!searchQuery) {
-      setFilteredPools(pools)
+      setFilteredPools(pools || [])
       return
     }
 
@@ -135,7 +94,7 @@ export default function PoolsPage() {
     if (isCreatingPool) {
       return (
         <CreatePool
-          onClose={() => setIsCreatingPool(false)}
+          onCloseAction={() => setIsCreatingPool(false)}
         />
       )
     }
@@ -145,7 +104,7 @@ export default function PoolsPage() {
 
   const hasLPTokens = (pool: PoolInfo) => {
     const lpSymbol = `LP-${pool.tokenAInfo.symbol}-${pool.tokenBInfo.symbol}`
-    return userBalances.some(balance => {
+    return balances.some(balance => {
       const lpTokenKey = balance.tokenKey.split(/\./).pop();
       return lpTokenKey === lpSymbol && balance.balance > 0;
     })
