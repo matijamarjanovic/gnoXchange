@@ -1,5 +1,4 @@
 import { ValidationResult, TicketValidationParams, FilterTicketsParams } from "@/app/types/validation.types";
-import { toast } from "@/hooks/use-toast";
 import { Ticket } from "@/app/types/types";
 
 /**
