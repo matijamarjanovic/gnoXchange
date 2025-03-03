@@ -1,16 +1,17 @@
 import { getAllTokens, getPoolsPage, getSwapEstimate, getUserTokenBalances } from '@/app/queries/abci-queries'
 import { addLiquidity, createPool, swap, withdrawLiquidity } from '@/app/services/tx-service'
+import {
+    AddLiquidityVariables,
+    CreatePoolVariables,
+    SwapVariables,
+    UsePoolsQueryParams,
+    UseSwapEstimateParams,
+    WithdrawLiquidityVariables
+} from '@/app/types/tanstack.types'
 import { PoolInfo, TokenBalance, TokenDetails } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { useWalletAddress } from '@/hooks/use-wallet-address'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-interface CreatePoolVariables {
-  tokenA: string
-  tokenB: string
-  amountA: number
-  amountB: number
-}
 
 export function useCreatePoolMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
@@ -89,11 +90,6 @@ export function useTokensAndBalances() {
   }
 }
 
-interface UsePoolsQueryParams {
-  page: number
-  pageSize: number
-}
-
 export function usePoolsQuery({ page, pageSize }: UsePoolsQueryParams) {
   return useQuery<PoolInfo[]>({
     queryKey: ['pools', page, pageSize],
@@ -101,13 +97,6 @@ export function usePoolsQuery({ page, pageSize }: UsePoolsQueryParams) {
     placeholderData: keepPreviousData,
     staleTime: 1000 * 30,
   })
-}
-
-interface SwapVariables {
-  poolKey: string
-  tokenKey: string
-  amount: number
-  minAmountOut: number
 }
 
 export function useSwapMutation(onSuccess?: () => void) {
@@ -150,12 +139,6 @@ export function useSwapMutation(onSuccess?: () => void) {
   })
 }
 
-interface AddLiquidityVariables {
-  poolKey: string
-  amountA: number
-  amountB: number
-}
-
 export function useAddLiquidityMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
 
@@ -195,11 +178,6 @@ export function useAddLiquidityMutation(onSuccess?: () => void) {
   })
 }
 
-interface WithdrawLiquidityVariables {
-  poolKey: string
-  amount: number
-}
-
 export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
 
@@ -236,12 +214,6 @@ export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
       })
     }
   })
-}
-
-interface UseSwapEstimateParams {
-  poolKey: string
-  tokenKey: string
-  amount: number | null
 }
 
 export function useSwapEstimateQuery({ poolKey, tokenKey, amount }: UseSwapEstimateParams) {

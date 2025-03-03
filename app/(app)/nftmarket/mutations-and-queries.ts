@@ -1,10 +1,15 @@
 import { getOpenNFTTicketsPage, getUserNFTBalances } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { buyNFT, cancelTicket, createNFTTicket } from '@/app/services/tx-service'
-import { Asset, NFTDetails, Ticket } from '@/app/types/types'
+import { NFTDetails, Ticket } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import {
+  CreateNFTTicketVariables,
+  BuyNFTVariables,
+  NFTBalancesResult
+} from '@/app/types/tanstack.types'
 
 export function useNFTTicketsQuery(page: number, pageSize: number) {
   return useQuery<Ticket[]>({
@@ -22,14 +27,6 @@ export function useUserNFTBalancesQuery(address: string | null) {
     enabled: !!address,
     staleTime: 1000 * 60, 
   })
-}
-
-interface NFTBalancesResult {
-  nfts: NFTDetails[]
-  isLoading: boolean
-  isError: boolean
-  error: Error | null
-  refetch: () => Promise<unknown>
 }
 
 export function useNFTBalances(): NFTBalancesResult {
@@ -53,14 +50,6 @@ export function useNFTBalances(): NFTBalancesResult {
     error: balancesQuery.error,
     refetch: () => balancesQuery.refetch()
   }
-}
-
-interface CreateNFTTicketVariables {
-  nftPath: string
-  assetOutType: Asset['type']
-  assetOutPath: string
-  minAmountOut: number
-  expiryHours: number
 }
 
 export function useCreateNFTTicketMutation(onSuccess?: () => void) {
@@ -97,13 +86,6 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
       })
     }
   })
-}
-
-interface BuyNFTVariables {
-  ticketId: Ticket['id']
-  amount: number
-  assetType: Asset['type']
-  assetPath: Asset['path']
 }
 
 export function useBuyNFTMutation(onSuccess?: () => void) {

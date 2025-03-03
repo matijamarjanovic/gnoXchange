@@ -1,21 +1,16 @@
 import { getAllTokens, getOpenTicketsPage, getUserTokenBalances } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { cancelTicket, createTicket, fulfillTicket } from '@/app/services/tx-service'
+import {
+    CreateTicketVariables,
+    FulfillTicketVariables,
+    UseTicketsQueryParams
+} from '@/app/types/tanstack.types'
 import { Ticket, TokenBalance, TokenDetails } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Fuse from 'fuse.js'
 import { useEffect, useState } from 'react'
-
-interface CreateTicketVariables {
-  assetInType: 'coin' | 'token'
-  assetOutType: 'coin' | 'token'
-  assetInPath: string
-  assetOutPath: string
-  amountIn: number
-  minAmountOut: number
-  expiryHours: number
-}
 
 export function useCreateTicketMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
@@ -106,11 +101,6 @@ export function useTokensAndBalances() {
   }
 }
 
-interface UseTicketsQueryParams {
-  page: number;
-  pageSize: number;
-}
-
 export function useTicketsQuery({ page, pageSize }: UseTicketsQueryParams) {
   return useQuery<Ticket[]>({
     queryKey: ['tickets', page, pageSize],
@@ -155,11 +145,6 @@ export function useTicketSearch(tickets: Ticket[]) {
   }, [tickets.length, tickets])
 
   return fuse
-}
-
-interface FulfillTicketVariables {
-  ticket: Ticket
-  amount: number
 }
 
 export function useFulfillTicketMutation(onSuccess?: () => void) {

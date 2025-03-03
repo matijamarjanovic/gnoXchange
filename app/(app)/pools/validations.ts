@@ -1,9 +1,15 @@
-import { PoolInfo } from "@/app/types/types";
 import { ValidationResult } from "@/app/types/validation.types";
+import { PoolInfo } from "@/app/types/types";
 
 export class PoolValidations {
   /**
    * Validates pool creation parameters
+   * @param tokenA - Key/path of first token
+   * @param tokenB - Key/path of second token 
+   * @param amountA - Amount of first token to provide
+   * @param amountB - Amount of second token to provide
+   * @param decimalsA - Decimal places of first token
+   * @param decimalsB - Decimal places of second token
    */
   static validatePoolCreation(
     tokenA: string,
@@ -56,7 +62,6 @@ export class PoolValidations {
       };
     }
 
-    // Check decimal scaling based on Gno code
     const minDecimals = Math.min(decimalsA, decimalsB);
 
     if (decimalsA > minDecimals) {
@@ -90,6 +95,9 @@ export class PoolValidations {
 
   /**
    * Validates liquidity addition parameters
+   * @param pool - Pool information containing reserves and total supply
+   * @param amountA - Amount of first token to add
+   * @param amountB - Amount of second token to add
    */
   static validateAddLiquidity(
     pool: PoolInfo,
@@ -119,12 +127,10 @@ export class PoolValidations {
       };
     }
 
-    // Check ratio for existing pools (based on Gno code)
     if (pool.totalSupplyLP > 0) {
       const expectedRatio = pool.reserveB / pool.reserveA;
       const providedRatio = numAmountB / numAmountA;
       
-      // Allow for small rounding differences
       if (Math.abs(expectedRatio - providedRatio) > 0.0001) {
         return {
           isValid: false,
@@ -141,6 +147,8 @@ export class PoolValidations {
 
   /**
    * Validates liquidity withdrawal parameters
+   * @param amount - Amount of LP tokens to withdraw
+   * @param userLPBalance - User's current LP token balance
    */
   static validateWithdrawLiquidity(
     amount: string,
@@ -173,6 +181,9 @@ export class PoolValidations {
 
   /**
    * Validates swap parameters
+   * @param amount - Amount of input token to swap
+   * @param estimatedAmount - Estimated output amount from swap
+   * @param userBalance - User's balance of input token
    */
   static validateSwap(
     amount: string,
