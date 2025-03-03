@@ -6,7 +6,6 @@ import { createNFTTicket } from "@/app/services/tx-service"
 import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount, getNFTName } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
-import { toast } from "@/hooks/use-toast"
 import { Coins, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "../../../components/ui/button"
@@ -14,7 +13,7 @@ import { Card } from "../../../components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
 import { Input } from "../../../components/ui/input"
 import { NFTMarketValidations } from './validations'
-
+import { showValidationError } from "@/app/utils"
 interface SellNFTProps {
   onCloseAction: () => void
   onSubmitAction: (nft: NFTDetails, assetType: Asset, amount: string) => void
@@ -108,12 +107,8 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
     )
 
     if (!validation.isValid) {
-      toast({
-        title: "Validation Error",
-        description: validation.error,
-        variant: "destructive"
-      })
-      return
+      showValidationError(validation.error!); 
+      return;
     }
 
     try {

@@ -6,6 +6,7 @@ import {
   XCircle
 } from 'lucide-react'
 import { TicketStatus } from './types/types'
+import { toast } from '@/hooks/use-toast'
 
 export const formatDate = (dateStr: string | null) => {
   if (!dateStr) return ''
@@ -81,3 +82,11 @@ export const getTicketStatusConfig = (status: TicketStatus) => {
       }
   }
 } 
+
+export function showValidationError(error: { title: string; description: string }) {
+  toast({
+    variant: "destructive",
+    title: error.title,
+    description: error.description
+  });
+}

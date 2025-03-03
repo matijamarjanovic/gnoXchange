@@ -89,18 +89,6 @@ export function validateTicketCreation({
 }
 
 /**
- * Displays a validation error message using a toast notification.
- * @param error - The error object containing the title and description of the error.
- */
-export function showValidationError(error: { title: string; description: string }) {
-  toast({
-    variant: "destructive",
-    title: error.title,
-    description: error.description
-  });
-}
-
-/**
  * Filters tickets based on a search query.
  * @param tickets - The list of tickets to filter.
  * @param searchQuery - The query string to filter tickets by.
