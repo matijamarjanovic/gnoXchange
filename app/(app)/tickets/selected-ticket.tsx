@@ -1,30 +1,25 @@
 'use client'
 
 import { AdenaService } from "@/app/services/adena-service"
-import { buyNFT, cancelTicket } from "@/app/services/tx-service"
+import { cancelTicket, fulfillTicket } from "@/app/services/tx-service"
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { FormattedAmount } from "@/components/formatted-amount"
+import { TradeConfirmationDialog } from "@/components/p2p-confirm-dialog"
 import { Card } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { toast } from "@/hooks/use-toast"
-import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
-import { Ghost, ShoppingCart, X } from "lucide-react"
-import Image from "next/image"
+import { Handshake, X } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Button } from "./ui/button"
+import { Button } from "../../../components/ui/button"
 
-interface SelectedNFTProps {
+interface SelectedTicketProps {
   ticket: Ticket
   onSuccess?: () => Promise<void>
 }
 
-export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
+export function SelectedTicket({ ticket, onSuccess }: SelectedTicketProps) {
   const [isTrading, setIsTrading] = useState(false)
+  const [showTradeDialog, setShowTradeDialog] = useState(false)
   const [walletAddress, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
@@ -41,57 +36,45 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
     };
   }, []);
 
-  const getNFTName = (path: string) => {
-    const parts = path.split('.')
-    return parts[parts.length - 2] + '.' + parts[parts.length - 1]
+  const handleTrade = () => {
+    setShowTradeDialog(true)
   }
 
-  const handleBuyNFT = async () => {
+  const handleTradeConfirm = async (amount: number) => {
     try {
       setIsTrading(true)
-      
-      const success = await buyNFT(
-        ticket.id,
-        ticket.minAmountOut,
-        ticket.assetOut.type as 'coin' | 'token',
-        ticket.assetOut.type === 'coin' ? '' : ticket.assetOut.path || ''
-      )
+      const success = await fulfillTicket(ticket, amount)
 
       if (success) {
         toast({
-          title: "Success",
-          description: "NFT purchased successfully",
+          title: "Trade successful",
+          description: "Your trade has been completed.",
           variant: "default"
         })
         await onSuccess?.()
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to purchase NFT",
-          variant: "destructive"
-        })
       }
     } catch (error) {
-      console.error("Error buying NFT:", error)
+      console.error('Trade failed:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to purchase NFT",
+        title: "Trade failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       })
     } finally {
       setIsTrading(false)
+      setShowTradeDialog(false)
     }
   }
 
-  const handleCancelSale = async () => {
+  const handleCancelTicket = async () => {
     try {
       setIsTrading(true)
       const success = await cancelTicket(ticket)
 
       if (success) {
         toast({
-          title: "Sale cancelled",
-          description: "Your NFT sale has been cancelled successfully.",
+          title: "Ticket cancelled",
+          description: "Your ticket has been cancelled successfully.",
           variant: "default"
         })
         await onSuccess?.()
@@ -108,40 +91,16 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
     }
   }
 
-  // TODO: replace mock image with actual image when grc721 is implemented
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg relative overflow-hidden">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="absolute top-2 right-2 bg-transparent hover:bg-gray-700 hover:text-gray-300" 
-          >
-            <Ghost className="h-5 w-5" />
-          </Button>
-        </DialogTrigger>
-        <DialogDescription/>
-        <DialogTitle/>
-        <DialogContent className="bg-gray-800 border-gray-700 -p-4" showCloseButton={false}>
-          <Image 
-            src="/nft-mock.png" 
-            alt="NFT Preview"
-            className="w-full h-auto object-cover rounded-lg"
-            width={400}
-            height={400}
-          />
-        </DialogContent>
-      </Dialog>
-
       <h2 className="text-lg mb-4">
-        NFT Sale <span className="text-2xl ml-2 font-bold">
-          {getNFTName(ticket.assetIn.tokenHubPath || '')} → {ticket.assetOut.symbol || ticket.assetOut.denom || 'GNOT'}
+        P2P Trade <span className="text-2xl ml-2 font-bold">
+          {ticket.assetIn.symbol || ticket.assetIn.denom} → {ticket.assetOut.symbol || ticket.assetOut.denom}
         </span>
       </h2>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
+          <div className="p-4 border border-gray-700 rounded-lg bg-gray-900 relative">
             <p className="text-sm text-gray-400">
               {walletAddress === ticket.creator ? 'Creator (you)' : 'Creator'}
             </p>
@@ -158,15 +117,17 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
           </div>
         </div>
         <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-          <p className="text-sm text-gray-400">NFT Path</p>
-          <p className="text-gray-300 break-all">
-            {ticket.assetIn.tokenHubPath}
+          <p className="text-sm text-gray-400">Selling</p>
+          <p className="text-gray-300">
+            {ticket.assetIn.symbol || ticket.assetIn.denom} <FormattedAmount 
+              amount={formatAmount(ticket.amountIn, ticket.assetIn.decimals ?? 6)} 
+            /> 
           </p>
         </div>
         <div className="p-4 border border-gray-700 rounded-lg bg-gray-900">
-          <p className="text-sm text-gray-400">Price</p>
+          <p className="text-sm text-gray-400">Minimum Receiving</p>
           <p className="text-gray-300">
-            {ticket.assetOut.symbol || ticket.assetOut.denom || 'GNOT'} <FormattedAmount 
+            {ticket.assetOut.symbol || ticket.assetOut.denom} <FormattedAmount 
               amount={formatAmount(ticket.minAmountOut, ticket.assetOut.decimals ?? 6)} 
             />
           </p>
@@ -182,27 +143,33 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
           </div>
         </div>
         <Button 
-          onClick={walletAddress === ticket.creator ? handleCancelSale : handleBuyNFT}
+          onClick={walletAddress === ticket.creator ? handleCancelTicket : handleTrade}
           className={`w-full transition-all shadow-md ${
             walletAddress === ticket.creator 
               ? 'bg-red-700/80 hover:bg-red-600 text-gray-100'
               : 'bg-blue-700 hover:bg-blue-600 text-gray-300'
           }`}
-          disabled={isTrading || ticket.status !== 'open'}
+          disabled={isTrading}
         >
           {walletAddress === ticket.creator ? (
             <>
               <X className="mr-2 h-4 w-4" />
-              Cancel Sale
+              Cancel Ticket
             </>
           ) : (
             <>
-              <ShoppingCart className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
-              {isTrading ? 'Buying...' : 'Buy NFT'}
+              <Handshake className={`mr-2 h-4 w-4 transition-transform duration-500 ${isTrading ? 'scale-125' : ''}`} />
+              {isTrading ? 'Swapping...' : 'Swap'}
             </>
           )}
         </Button>
       </div>
+      <TradeConfirmationDialog
+        isOpen={showTradeDialog}
+        onClose={() => setShowTradeDialog(false)}
+        onConfirm={(amount) => handleTradeConfirm(amount)}
+        ticket={ticket}
+      />
     </Card>
   )
 } 

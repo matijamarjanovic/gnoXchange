@@ -1,5 +1,5 @@
 import { AdenaService } from "@/app/services/adena-service";
-import { GnoPackage } from "@/app/types/adena-types";
+import { GnoPackage } from "@/app/types/adena.types";
 import { BroadcastType, TransactionBuilder, makeMsgCallMessage, makeMsgRunMessage } from "@adena-wallet/sdk";
 import { Ticket } from "../types/types";
 

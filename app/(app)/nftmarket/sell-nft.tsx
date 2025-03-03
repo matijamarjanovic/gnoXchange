@@ -8,10 +8,10 @@ import { formatAmount, getNFTName } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
 import { Coins, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Button } from "./ui/button"
-import { Card } from "./ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { Input } from "./ui/input"
+import { Button } from "../../../components/ui/button"
+import { Card } from "../../../components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
+import { Input } from "../../../components/ui/input"
 
 interface SellNFTProps {
   onCloseAction: () => void

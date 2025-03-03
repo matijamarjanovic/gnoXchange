@@ -2,6 +2,7 @@
 import { getTicketsPage } from "@/app/queries/abci-queries";
 import { Ticket, TicketStatus } from '@/app/types/types';
 import { formatTime, getNFTName, getTicketStatusConfig } from '@/app/utils';
+import { NoDataMessage } from "@/components/no-data-mess";
 import { SearchBar } from '@/components/search-bar';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,9 +11,8 @@ import { Filter } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'react-use';
 import { PaginationControls } from '../../../components/pagination-controls';
-import { TicketSidebar } from "../../../components/ticket-sidebar";
 import { useTicketSidebar } from "../contexts/TicketSidebarContext";
-import { NoDataMessage } from "@/components/no-data-mess";
+import { TicketSidebar } from "./ticket-sidebar";
 const PAGE_SIZE_KEY = 'ticketHistory.pageSize'
 
 export default function TicketHistory() {

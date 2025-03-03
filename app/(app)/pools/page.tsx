@@ -16,9 +16,9 @@ import { AdenaService } from '@/app/services/adena-service'
 import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { CreatePool } from '../../../components/create-pool'
+import { CreatePool } from './create-pool'
 import { PaginationControls } from '../../../components/pagination-controls'
-import { SelectedPool } from '../../../components/selected-pool'
+import { SelectedPool } from './selected-pool'
 
 export default function PoolsPage() {
   const [pools, setPools] = useState<PoolInfo[]>([])

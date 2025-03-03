@@ -1,18 +1,16 @@
 'use client'
 
-import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
-import { AdenaService } from "@/app/services/adena-service"
-import { createTicket } from "@/app/services/tx-service"
-import { Asset, TokenBalance, TokenDetails } from "@/app/types/types"
+import { Asset } from "@/app/types/types"
 import { formatAmount } from "@/app/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
-import { toast } from "@/hooks/use-toast"
 import { Coins, Ticket } from "lucide-react"
 import React, { useEffect, useState } from "react"
+import { useCreateTicketMutation, useTokensAndBalances } from './mutations-and-queries'
+import { showValidationError, validateTicketCreation } from "./validations"
 
 interface CreateTicketForm {
   tokenInKey: string
@@ -37,9 +35,10 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
   })
   const [assetInType, setAssetInType] = useState<Asset | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
-  const [tokens, setTokens] = useState<TokenDetails[]>([])
-  const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
   const [showLPTokens, setShowLPTokens] = useState(false)
+
+  const { tokens, balances, isLoading, refetch } = useTokensAndBalances()
+  const createTicketMutation = useCreateTicketMutation(onSuccess)
 
   const nativeCoin: Asset = {
     type: 'coin',
@@ -49,25 +48,9 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
     decimals: 6
   }
 
-  const fetchData = async () => {
-    try {
-      const [fetchedTokens, fetchedBalances] = await Promise.all([
-        getAllTokens(),
-        getUserTokenBalances(AdenaService.getInstance().getAddress() || '')
-      ])
-      
-      setTokens(fetchedTokens)
-      setUserBalances(fetchedBalances)
-    } catch (error) {
-      console.error('Failed to fetch data:', error)
-    }
-  }
-
   useEffect(() => {
-    fetchData()
-
     const handleAddressChange = () => {
-      fetchData()
+      refetch()
       setCreateTicketForm({
         tokenInKey: '',
         tokenOutKey: '',
@@ -84,12 +67,12 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
     return () => {
       window.removeEventListener('adenaAddressChanged', handleAddressChange)
     }
-  }, [])
+  }, [refetch])
 
   const assetsIn: Asset[] = [
     nativeCoin,
     ...tokens
-      .filter(token => userBalances.some(balance => balance.tokenKey === token.key))
+      .filter(token => balances.some(balance => balance.tokenKey === token.key))
       .map(token => ({
         type: 'token',
         path: token.key,
@@ -126,8 +109,8 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
       if (a.type === 'coin') return -1
       if (b.type === 'coin') return 1
 
-      const balanceA = userBalances.find(balance => balance.tokenKey === a.path)
-      const balanceB = userBalances.find(balance => balance.tokenKey === b.path)
+      const balanceA = balances.find(balance => balance.tokenKey === a.path)
+      const balanceB = balances.find(balance => balance.tokenKey === b.path)
       
       if (balanceA && !balanceB) return -1
       if (!balanceA && balanceB) return 1
@@ -135,63 +118,40 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
       return (a.symbol || '').localeCompare(b.symbol || '')
     })
 
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!assetInType || !assetOutType || 
-        !createTicketForm.amountIn || 
-        !createTicketForm.minAmountOut || 
-        !createTicketForm.expiryHours) {
-      toast({
-        variant: "destructive",
-        title: "Missing fields",
-        description: "Please fill in all fields"
-      });
-      return;
+    const validationResult = validateTicketCreation({
+      assetInType,
+      assetOutType,
+      amountIn: createTicketForm.amountIn,
+      minAmountOut: createTicketForm.minAmountOut,
+      expiryHours: createTicketForm.expiryHours
+    })
+
+    if (!validationResult.isValid) {
+      showValidationError(validationResult.error!)
+      return
     }
 
-    const amountIn = parseFloat(createTicketForm.amountIn.replace(/\s+/g, ''));
-    const minAmountOut = parseFloat(createTicketForm.minAmountOut.replace(/\s+/g, ''));
-    const expiryHours = parseInt(createTicketForm.expiryHours);
-
-    if (isNaN(amountIn) || isNaN(minAmountOut) || isNaN(expiryHours)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid input",
-        description: "Please enter valid numbers"
-      });
-      return;
-    }
-
-    try {
-      const success = await createTicket(
-        assetInType.type as 'coin' | 'token',
-        assetOutType.type as 'coin' | 'token',
-        assetInType.type === 'coin' ? assetInType.denom! : assetInType.path!,
-        assetOutType.type === 'coin' ? assetOutType.denom! : assetOutType.path!,
-        amountIn,
-        minAmountOut,
-        expiryHours
-      );
-
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Ticket created successfully",
-          variant: "default"
-        });
-        await onSuccess?.();
-        onCancelAction();
+    createTicketMutation.mutate({
+      assetInType: assetInType!.type as 'coin' | 'token',
+      assetOutType: assetOutType!.type as 'coin' | 'token',
+      assetInPath: assetInType!.type === 'coin' ? assetInType!.denom! : assetInType!.path!,
+      assetOutPath: assetOutType!.type === 'coin' ? assetOutType!.denom! : assetOutType!.path!,
+      amountIn: parseFloat(createTicketForm.amountIn),
+      minAmountOut: parseFloat(createTicketForm.minAmountOut),
+      expiryHours: parseInt(createTicketForm.expiryHours)
+    }, {
+      onSuccess: () => {
+        onCancelAction()
       }
-    } catch (error) {
-      console.error("Error creating ticket:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create ticket"
-      });
-    }
-  };
+    })
+  }
 
   return (
     <Card className="p-6 bg-gray-800 text-gray-400 border-none shadow-lg">
@@ -238,7 +198,7 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
               }}
             >
               {filteredAssetsIn.map((asset, index) => {
-                const balance = userBalances.find(b => b.tokenKey === asset.path)
+                const balance = balances.find(b => b.tokenKey === asset.path)
                 const isDisabled = assetOutType && (
                   (asset.type === 'coin' && assetOutType.type === 'coin') ||
                   (asset.type === 'token' && asset.path === assetOutType.path)
@@ -292,7 +252,7 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
               }}
             >
               {filteredAssetsOut.map((asset, index) => {
-                const balance = userBalances.find(b => b.tokenKey === asset.path)
+                const balance = balances.find(b => b.tokenKey === asset.path)
                 const isDisabled = assetInType && (
                   (asset.type === 'coin' && assetInType.type === 'coin') ||
                   (asset.type === 'token' && asset.path === assetInType.path)
@@ -363,9 +323,13 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
             className="bg-gray-900 border-gray-700"
           />
         </div>
-        <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md">
+        <Button 
+          type="submit" 
+          className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
+          disabled={createTicketMutation.isPending}
+        >
           <Ticket className="mr-2 h-4 w-4" />
-          Create Ticket
+          {createTicketMutation.isPending ? 'Creating...' : 'Create Ticket'}
         </Button>
       </form>
     </Card>

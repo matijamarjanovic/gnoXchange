@@ -16,7 +16,7 @@ import {
 import { toast } from "@/hooks/use-toast"
 import { ArrowDown, ArrowRight } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useTicketSidebar } from "../app/(app)/contexts/TicketSidebarContext"
+import { useTicketSidebar } from "../contexts/TicketSidebarContext"
 
 export function TicketSidebar() {
   const { selectedTicket, isOpen, setIsOpen, setSelectedTicket } = useTicketSidebar()
