@@ -1,7 +1,5 @@
 'use client'
 
-import { AdenaService } from "@/app/services/adena-service"
-import { buyNFT, cancelTicket } from "@/app/services/tx-service"
 import { Ticket } from "@/app/types/types"
 import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { FormattedAmount } from "@/components/formatted-amount"
@@ -11,12 +9,12 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { toast } from "@/hooks/use-toast"
+import { useWalletAddress } from "@/hooks/use-wallet-address"
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 import { Ghost, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
 import { Button } from "../../../components/ui/button"
+import { useBuyNFTMutation, useCancelNFTSaleMutation } from "./mutations-and-queries"
 import { NFTMarketValidations } from './validations'
 
 interface SelectedNFTProps {
@@ -25,22 +23,12 @@ interface SelectedNFTProps {
 }
 
 export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
-  const [isTrading, setIsTrading] = useState(false)
-  const [walletAddress, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
+  const walletAddress = useWalletAddress()
   const statusConfig = getTicketStatusConfig(ticket.status)
   const StatusIcon = statusConfig.icon
 
-  useEffect(() => {
-    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
-      setWalletAddress(event.detail.newAddress || '');
-    };
-
-    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    };
-  }, []);
+  const buyMutation = useBuyNFTMutation(onSuccess)
+  const cancelMutation = useCancelNFTSaleMutation(onSuccess)
 
   const getNFTName = (path: string) => {
     const parts = path.split('.')
@@ -54,75 +42,21 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
       ticket.minAmountOut
     )
 
-    if (!validation.isValid) {
-      toast({
-        title: "Validation Error",
-        description: validation.error,
-        variant: "destructive"
-      })
-      return
-    }
+    if (!validation.isValid) return
 
-    try {
-      setIsTrading(true)
-      
-      const success = await buyNFT(
-        ticket.id,
-        ticket.minAmountOut,
-        ticket.assetOut.type as 'coin' | 'token',
-        ticket.assetOut.type === 'coin' ? '' : ticket.assetOut.path || ''
-      )
-
-      if (success) {
-        toast({
-          title: "Success",
-          description: "NFT purchased successfully",
-          variant: "default"
-        })
-        await onSuccess?.()
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to purchase NFT",
-          variant: "destructive"
-        })
-      }
-    } catch (error) {
-      console.error("Error buying NFT:", error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to purchase NFT",
-        variant: "destructive"
-      })
-    } finally {
-      setIsTrading(false)
-    }
+    buyMutation.mutate({
+      ticketId: ticket.id,
+      amount: ticket.minAmountOut,
+      assetType: ticket.assetOut.type,
+      assetPath: ticket.assetOut.type === 'coin' ? '' : ticket.assetOut.path || ''
+    })
   }
 
   const handleCancelSale = async () => {
-    try {
-      setIsTrading(true)
-      const success = await cancelTicket(ticket)
-
-      if (success) {
-        toast({
-          title: "Sale cancelled",
-          description: "Your NFT sale has been cancelled successfully.",
-          variant: "default"
-        })
-        await onSuccess?.()
-      }
-    } catch (error) {
-      console.error('Cancel failed:', error)
-      toast({
-        title: "Cancel failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      })
-    } finally {
-      setIsTrading(false)
-    }
+    cancelMutation.mutate(ticket)
   }
+
+  const isTrading = buyMutation.isPending || cancelMutation.isPending
 
   // TODO: replace mock image with actual image when grc721 is implemented
   return (

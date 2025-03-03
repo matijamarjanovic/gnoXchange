@@ -56,13 +56,12 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
 
   useEffect(() => {
     fetchData()
-
+    
     const handleAddressChange = () => {
       fetchData()
     }
 
     window.addEventListener('adenaAddressChanged', handleAddressChange)
-
     return () => {
       window.removeEventListener('adenaAddressChanged', handleAddressChange)
     }

@@ -1,8 +1,8 @@
 'use client'
 
+import { useNFTTicketsQuery } from '@/app/(app)/nftmarket/mutations-and-queries'
 import { SelectedNFT } from '@/app/(app)/nftmarket/selected-nft'
 import { SellNFT } from '@/app/(app)/nftmarket/sell-nft'
-import { getOpenNFTTicketsPage } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { Ticket } from '@/app/types/types'
 import { formatAmount, getNFTName } from '@/app/utils'
@@ -17,35 +17,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
 
 export default function NFTMarketPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isSellingNFT, setIsSellingNFT] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
 
-  const refreshNFTs = useCallback(async () => {
-    try {
-      const ticketsData = await getOpenNFTTicketsPage(1, 10000)
-      const sortedTickets = [...ticketsData]
-        .filter(ticket => {
-          const expiryDate = new Date(ticket.expiresAt)
-          return expiryDate > new Date()
-        })
-        .sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      
-      setTickets(sortedTickets)
-      setFilteredTickets(sortedTickets)
-      setSelectedTicket(sortedTickets[0] || null)
-    } catch (error) {
-      console.error('Error refreshing NFTs:', error)
-    }
-  }, [])
+  const { data: tickets = [], isLoading } = useNFTTicketsQuery(1, 10000)
 
   useEffect(() => {
     const calculatePageSize = () => {
@@ -54,59 +34,16 @@ export default function NFTMarketPage() {
       const containerPadding = 48
       const cardGap = 8 
       const containerHeight = window.innerHeight - containerPadding
-      
       const availableHeight = containerHeight - searchBarHeight - 40 
-      
       return Math.floor(availableHeight / (cardHeight + cardGap))
     }
 
-    const fetchTickets = async () => {
-      try {
-        const ticketsData = await getOpenNFTTicketsPage(1, 10000)
-        
-        const sortedTickets = [...ticketsData].sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        
-        setTickets(sortedTickets)
-        setFilteredTickets(sortedTickets)
-        setSelectedTicket(sortedTickets[0] || null)
-
-        const fuseInstance = new Fuse(sortedTickets, {
-          keys: [
-            'assetIn.tokenHubPath',
-            'assetIn.name',
-            'assetIn.symbol',
-            'assetIn.type',
-            'assetOut.tokenHubPath',
-            'assetOut.name',
-            'assetOut.symbol',
-            'assetOut.type',
-            'id',
-            'creator',
-            'amountIn',
-            'minAmountOut',
-            'status'
-          ],
-          threshold: 0.4,
-          shouldSort: true,
-          minMatchCharLength: 2
-        })
-        setFuse(fuseInstance)
-      } catch (error) {
-        console.error('Error fetching NFT tickets:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const initializeTickets = () => {
+    const initializePageSize = () => {
       const calculatedPageSize = calculatePageSize()
       setPageSize(calculatedPageSize)
-      fetchTickets()
     }
 
-    initializeTickets()
+    initializePageSize()
 
     const handleResize = () => {
       const newPageSize = calculatePageSize()
@@ -117,18 +54,50 @@ export default function NFTMarketPage() {
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [pageSize, refreshNFTs])
+  }, [pageSize])
 
   useEffect(() => {
+    if (!tickets.length) return
+
+    if (!fuse) {
+      const fuseInstance = new Fuse(tickets, {
+        keys: [
+          'assetIn.tokenHubPath',
+          'assetIn.name',
+          'assetIn.symbol',
+          'assetIn.type',
+          'assetOut.tokenHubPath',
+          'assetOut.name',
+          'assetOut.symbol',
+          'assetOut.type',
+          'id',
+          'creator',
+          'amountIn',
+          'minAmountOut',
+          'status'
+        ],
+        threshold: 0.4,
+        shouldSort: true,
+        minMatchCharLength: 2
+      })
+      setFuse(fuseInstance)
+    }
+
+    const validTickets = tickets.filter(ticket => {
+      const expiryDate = new Date(ticket.expiresAt)
+      return expiryDate > new Date()
+    }).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+
     if (!searchQuery) {
-      setFilteredTickets(tickets)
+      setFilteredTickets(validTickets)
+      setSelectedTicket(validTickets[0] || null)
       return
     }
 
-    if (fuse) {
-      const results = fuse.search(searchQuery)
-      setFilteredTickets(results.map(result => result.item))
-    }
+    const results = fuse!.search(searchQuery)
+    setFilteredTickets(results.map(result => result.item))
   }, [searchQuery, tickets, fuse])
 
   const getCurrentPageItems = useCallback(() => {
@@ -137,31 +106,11 @@ export default function NFTMarketPage() {
     return filteredTickets.slice(startIndex, endIndex)
   }, [currentPage, pageSize, filteredTickets])
 
-  const handleSellNFT = async () => {
-    try {
-      refreshNFTs()
-      setIsSellingNFT(false)
-    } catch (error) {
-      console.error('Error selling NFT:', error)
-    }
-  }
-
-  const handleAddressChange = () => {
-    refreshNFTs()
-  }
-
-  useEffect(() => {
-    window.addEventListener('adenaAddressChanged', handleAddressChange)
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange)
-    }
-  })
-
   useEffect(() => {
     if (getCurrentPageItems().length === 0 && !isSellingNFT) {
-      setIsSellingNFT(true);
+      setIsSellingNFT(true)
     }
-  }, [isSellingNFT, setIsSellingNFT, getCurrentPageItems]);
+  }, [isSellingNFT, getCurrentPageItems])
 
   if (isLoading) {
     return (
@@ -266,12 +215,11 @@ export default function NFTMarketPage() {
           {isSellingNFT ? (
             <SellNFT 
               onCloseAction={() => setIsSellingNFT(false)}
-              onSubmitAction={handleSellNFT}
+              onSubmitAction={() => setIsSellingNFT(false)}
             />
           ) : (
             selectedTicket && <SelectedNFT 
               ticket={selectedTicket} 
-              onSuccess={refreshNFTs}
             />
           )}
         </div>

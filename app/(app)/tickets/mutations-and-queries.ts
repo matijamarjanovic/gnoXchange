@@ -152,7 +152,7 @@ export function useTicketSearch(tickets: Ticket[]) {
       minMatchCharLength: 2
     })
     setFuse(fuseInstance)
-  }, [tickets.length, tickets]) // Only recreate Fuse when tickets array length changes
+  }, [tickets.length, tickets])
 
   return fuse
 }
