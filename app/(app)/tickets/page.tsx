@@ -31,6 +31,14 @@ export default function TicketsPage() {
   const filteredTickets = filterTickets({ tickets, searchQuery, fuse })
 
   useEffect(() => {
+    if (!isLoading && filteredTickets.length > 0 && !selectedTicket && !isCreatingTicket) {
+      setSelectedTicket(filteredTickets[0])
+    }else{
+      setIsCreatingTicket(true)
+    }
+  }, [filteredTickets, isLoading, selectedTicket, isCreatingTicket])
+
+  useEffect(() => {
     const calculatePageSize = () => {
       const cardHeight = 64 
       const searchBarHeight = 40
