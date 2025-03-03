@@ -5,11 +5,11 @@ import { formatAmount, getTicketStatusConfig } from '@/app/utils'
 import { FormattedAmount } from "@/components/formatted-amount"
 import { TradeConfirmationDialog } from "@/components/p2p-confirm-dialog"
 import { Card } from "@/components/ui/card"
+import { useWalletAddress } from "@/hooks/use-wallet-address"
 import { Handshake, X } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../components/ui/button"
-import { useCancelTicketMutation, useFulfillTicketMutation } from "./mutations-and-queries"
-import { useWalletAddress } from "@/hooks/use-wallet-address"
+import { useCancelTicketMutation, useFulfillTicketMutation } from "../../services/tickets/mutations-and-queries"
 
 interface SelectedTicketProps {
   ticket: Ticket

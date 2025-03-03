@@ -12,8 +12,8 @@ import { Card } from '@/components/ui/card'
 import { CirclePlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
-import { useTicketSearch, useTicketsQuery } from './mutations-and-queries'
-import { filterTickets } from './validations'
+import { useTicketSearch, useTicketsQuery } from '../../services/tickets/mutations-and-queries'
+import { filterTickets } from '../../services/tickets/validations'
 
 export default function TicketsPage() {
   const [currentPage, setCurrentPage] = useState(1)

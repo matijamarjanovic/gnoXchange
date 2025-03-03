@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
 import { Coins, Ticket } from "lucide-react"
 import React, { useEffect, useState } from "react"
-import { useCreateTicketMutation, useTokensAndBalances } from './mutations-and-queries'
-import { validateTicketCreation } from "./validations"
+import { useCreateTicketMutation, useTokensAndBalances } from '../../services/tickets/mutations-and-queries'
+import { validateTicketCreation } from "../../services/tickets/validations"
 import { showValidationError } from "@/app/utils"
 
 interface CreateTicketForm {

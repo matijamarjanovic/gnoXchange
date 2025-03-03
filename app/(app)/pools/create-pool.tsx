@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
 import { Coins, WavesLadder } from "lucide-react"
 import { useState } from "react"
-import { useCreatePoolMutation, useTokensAndBalances } from './mutations-and-queries'
-import { PoolValidations } from './validations'
+import { useCreatePoolMutation, useTokensAndBalances } from '../../services/pools/mutations-and-queries'
+import { PoolValidations } from '../../services/pools/validations'
 
 interface CreatePoolForm {
   tokenA: string 

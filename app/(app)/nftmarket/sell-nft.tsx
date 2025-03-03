@@ -4,7 +4,7 @@ import { getAllTokens, getUserNFTBalances, getUserTokenBalances } from "@/app/qu
 import { AdenaService } from "@/app/services/adena-service"
 import { createNFTTicket } from "@/app/services/tx-service"
 import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
-import { formatAmount, getNFTName } from "@/app/utils"
+import { formatAmount, getNFTName, showValidationError } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
 import { Coins, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -12,8 +12,7 @@ import { Button } from "../../../components/ui/button"
 import { Card } from "../../../components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
 import { Input } from "../../../components/ui/input"
-import { NFTMarketValidations } from './validations'
-import { showValidationError } from "@/app/utils"
+import { NFTMarketValidations } from '../../services/nftmarket/validations'
 interface SellNFTProps {
   onCloseAction: () => void
   onSubmitAction: (nft: NFTDetails, assetType: Asset, amount: string) => void

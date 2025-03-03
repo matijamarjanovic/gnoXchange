@@ -15,8 +15,8 @@ import {
   useSwapMutation,
   useTokensAndBalances,
   useWithdrawLiquidityMutation
-} from './mutations-and-queries'
-import { PoolValidations } from './validations'
+} from '../../services/pools/mutations-and-queries'
+import { PoolValidations } from '../../services/pools/validations'
 
 interface SelectedPoolProps {
   pool: PoolInfo

@@ -1,9 +1,9 @@
 'use client'
 
-import { useNFTTicketsQuery } from '@/app/(app)/nftmarket/mutations-and-queries'
 import { SelectedNFT } from '@/app/(app)/nftmarket/selected-nft'
 import { SellNFT } from '@/app/(app)/nftmarket/sell-nft'
 import { AdenaService } from '@/app/services/adena-service'
+import { useNFTTicketsQuery } from '@/app/services/nftmarket/mutations-and-queries'
 import { Ticket } from '@/app/types/types'
 import { formatAmount, getNFTName } from '@/app/utils'
 import { NoDataMessage } from '@/components/no-data-mess'

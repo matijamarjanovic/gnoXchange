@@ -15,8 +15,8 @@ import Fuse from 'fuse.js'
 import { CirclePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
+import { usePoolsQuery, useTokensAndBalances } from '../../services/pools/mutations-and-queries'
 import { CreatePool } from './create-pool'
-import { usePoolsQuery, useTokensAndBalances } from './mutations-and-queries'
 import { SelectedPool } from './selected-pool'
 
 export default function PoolsPage() {

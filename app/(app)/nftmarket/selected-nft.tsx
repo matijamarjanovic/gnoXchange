@@ -14,8 +14,8 @@ import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 import { Ghost, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import { Button } from "../../../components/ui/button"
-import { useBuyNFTMutation, useCancelNFTSaleMutation } from "./mutations-and-queries"
-import { NFTMarketValidations } from './validations'
+import { useBuyNFTMutation, useCancelNFTSaleMutation } from "../../services/nftmarket/mutations-and-queries"
+import { NFTMarketValidations } from '../../services/nftmarket/validations'
 
 interface SelectedNFTProps {
   ticket: Ticket
