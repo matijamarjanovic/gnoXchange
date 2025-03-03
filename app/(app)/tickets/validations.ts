@@ -1,23 +1,16 @@
-import { Asset } from "@/app/types/types";
-import { ValidationResult } from "@/app/types/validation.types";
+import { ValidationResult, TicketValidationParams, FilterTicketsParams } from "@/app/types/validation.types";
 import { toast } from "@/hooks/use-toast";
 import { Ticket } from "@/app/types/types";
-import Fuse from "fuse.js";
 
-interface TicketValidationParams {
-  assetInType: Asset | null;
-  assetOutType: Asset | null;
-  amountIn: string;
-  minAmountOut: string;
-  expiryHours: string;
-}
-
-interface FilterTicketsParams {
-  tickets: Ticket[];
-  searchQuery: string;
-  fuse: Fuse<Ticket> | null;
-}
-
+/**
+ * Validates the creation of a ticket.
+ * @param assetInType - The type of asset being used to create the ticket.
+ * @param assetOutType - The type of asset expected in return.
+ * @param amountIn - The amount of the input asset.
+ * @param minAmountOut - The minimum amount of the output asset expected.
+ * @param expiryHours - The number of hours until the ticket expires.
+ * @returns A ValidationResult indicating whether the ticket creation parameters are valid.
+ */
 export function validateTicketCreation({
   assetInType,
   assetOutType,
@@ -95,6 +88,10 @@ export function validateTicketCreation({
   return { isValid: true };
 }
 
+/**
+ * Displays a validation error message using a toast notification.
+ * @param error - The error object containing the title and description of the error.
+ */
 export function showValidationError(error: { title: string; description: string }) {
   toast({
     variant: "destructive",
@@ -103,6 +100,13 @@ export function showValidationError(error: { title: string; description: string 
   });
 }
 
+/**
+ * Filters tickets based on a search query.
+ * @param tickets - The list of tickets to filter.
+ * @param searchQuery - The query string to filter tickets by.
+ * @param fuse - The Fuse.js instance used for searching.
+ * @returns The filtered list of tickets.
+ */
 export function filterTickets({ tickets, searchQuery, fuse }: FilterTicketsParams): Ticket[] {
   if (!searchQuery) {
     return tickets;
