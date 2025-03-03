@@ -6,12 +6,14 @@ import { createNFTTicket } from "@/app/services/tx-service"
 import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount, getNFTName } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
+import { toast } from "@/hooks/use-toast"
 import { Coins, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "../../../components/ui/button"
 import { Card } from "../../../components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
 import { Input } from "../../../components/ui/input"
+import { NFTMarketValidations } from './validations'
 
 interface SellNFTProps {
   onCloseAction: () => void
@@ -98,31 +100,46 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (nftDetails && assetOutType && amountOut) {
-      try {
-        setIsSelling(true)
-        
-        const success = await createNFTTicket(
-          nftDetails.key,
-          assetOutType.type as 'coin' | 'token',
-          assetOutType.type === 'coin' ? assetOutType.denom || '' : assetOutType.path || '',
-          parseInt(amountOut.replaceAll(' ', '')),
-          parseInt(expiryHours.trim())
-        );
+    
+    const validation = NFTMarketValidations.validateNFTSale(
+      nftDetails,
+      assetOutType,
+      amountOut,
+      expiryHours
+    )
 
-        if (success) {
-          onSubmitAction(nftDetails, assetOutType, amountOut)
-          onCloseAction()
-        } else {
-          console.error("Failed to create NFT ticket")
-          // todo: add error handling UI here
-        }
-      } catch (error) {
-        console.error("Error creating NFT ticket:", error)
+    if (!validation.isValid) {
+      toast({
+        title: "Validation Error",
+        description: validation.error,
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      setIsSelling(true)
+      
+      const success = await createNFTTicket(
+        nftDetails?.key || '',
+        assetOutType?.type as 'coin' | 'token' || 'coin',
+        assetOutType?.type === 'coin' ? assetOutType?.denom || '' : assetOutType?.path || '',
+        parseInt(amountOut.replaceAll(' ', '')),
+        parseInt(expiryHours.trim())
+      );
+
+      if (success) {
+        onSubmitAction(nftDetails!, assetOutType!, amountOut)
+        onCloseAction()
+      } else {
+        console.error("Failed to create NFT ticket")
         // todo: add error handling UI here
-      } finally {
-        setIsSelling(false)
       }
+    } catch (error) {
+      console.error("Error creating NFT ticket:", error)
+      // todo: add error handling UI here
+    } finally {
+      setIsSelling(false)
     }
   }
 

@@ -17,6 +17,7 @@ import { Ghost, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { Button } from "../../../components/ui/button"
+import { NFTMarketValidations } from './validations'
 
 interface SelectedNFTProps {
   ticket: Ticket
@@ -47,6 +48,21 @@ export function SelectedNFT({ ticket, onSuccess }: SelectedNFTProps) {
   }
 
   const handleBuyNFT = async () => {
+    const validation = NFTMarketValidations.validateNFTPurchase(
+      ticket.id,
+      ticket.minAmountOut,
+      ticket.minAmountOut
+    )
+
+    if (!validation.isValid) {
+      toast({
+        title: "Validation Error",
+        description: validation.error,
+        variant: "destructive"
+      })
+      return
+    }
+
     try {
       setIsTrading(true)
       

@@ -30,9 +30,14 @@ export default function NFTMarketPage() {
   const refreshNFTs = useCallback(async () => {
     try {
       const ticketsData = await getOpenNFTTicketsPage(1, 10000)
-      const sortedTickets = [...ticketsData].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
+      const sortedTickets = [...ticketsData]
+        .filter(ticket => {
+          const expiryDate = new Date(ticket.expiresAt)
+          return expiryDate > new Date()
+        })
+        .sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
       
       setTickets(sortedTickets)
       setFilteredTickets(sortedTickets)
