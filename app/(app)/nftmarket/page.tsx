@@ -92,7 +92,6 @@ export default function NFTMarketPage() {
 
     if (!searchQuery) {
       setFilteredTickets(validTickets)
-      setSelectedTicket(validTickets[0] || null)
       return
     }
 
@@ -100,17 +99,22 @@ export default function NFTMarketPage() {
     setFilteredTickets(results.map(result => result.item))
   }, [searchQuery, tickets, fuse])
 
+  useEffect(() => {
+    if (!isLoading && filteredTickets.length > 0) {
+      if (!selectedTicket && !isSellingNFT) {
+        setIsSellingNFT(false)
+        setSelectedTicket(filteredTickets[0])
+      }
+    } else if (!isLoading && filteredTickets.length === 0 && !isSellingNFT) {
+      setIsSellingNFT(true)
+    }
+  }, [filteredTickets, isLoading, selectedTicket, isSellingNFT])
+
   const getCurrentPageItems = useCallback(() => {
     const startIndex = (currentPage - 1) * pageSize
     const endIndex = startIndex + pageSize
     return filteredTickets.slice(startIndex, endIndex)
   }, [currentPage, pageSize, filteredTickets])
-
-  useEffect(() => {
-    if (getCurrentPageItems().length === 0 && !isSellingNFT) {
-      setIsSellingNFT(true)
-    }
-  }, [isSellingNFT, getCurrentPageItems])
 
   if (isLoading) {
     return (
