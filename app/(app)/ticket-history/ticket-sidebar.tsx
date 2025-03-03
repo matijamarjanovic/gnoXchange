@@ -1,8 +1,8 @@
 'use client'
 
-import { AdenaService } from "@/app/services/adena-service"
-import { fulfillTicket } from "@/app/services/tx-service"
-import { formatDate, getTicketStatusConfig } from '@/app/utils'
+import { useFulfillTicketMutation } from "@/app/services/ticket-history/mutations-and-queries"
+import { validateTicketFulfillment } from "@/app/services/ticket-history/validation"
+import { formatDate, getTicketStatusConfig, showValidationError } from '@/app/utils'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,67 +13,56 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { toast } from "@/hooks/use-toast"
+import { useWalletAddress } from "@/hooks/use-wallet-address"
 import { ArrowDown, ArrowRight } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useTicketSidebar } from "../contexts/TicketSidebarContext"
 
 export function TicketSidebar() {
   const { selectedTicket, isOpen, setIsOpen, setSelectedTicket } = useTicketSidebar()
   const [swapAmount, setSwapAmount] = useState("")
-  const [isTrading, setIsTrading] = useState(false)
-  const [walletAddress, setWalletAddress] = useState(AdenaService.getInstance().getAddress())
+  const walletAddress = useWalletAddress()
+
+  const fulfillMutation = useFulfillTicketMutation(() => {
+    handleClose()
+  })
+
+  const handleClose = useCallback(() => {
+    setSwapAmount("")
+    setSelectedTicket(null)
+  }, [setSelectedTicket])
 
   useEffect(() => {
-    const handleAddressChange = (event: CustomEvent<{ newAddress: string | null }>) => {
-      setWalletAddress(event.detail.newAddress || '');
-    };
-
-    window.addEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    return () => {
-      window.removeEventListener('adenaAddressChanged', handleAddressChange as EventListener);
-    };
-  }, []);
-
-  const handleClose = () => {
-    setIsOpen(false)
-    setSelectedTicket(null)
-    setSwapAmount("")
-  }
+    if (!isOpen) {
+      handleClose()
+    }
+  }, [isOpen, handleClose])
 
   const handleFulfillTicket = async () => {
-    if (!selectedTicket || walletAddress === selectedTicket.creator) return;
+    if (!selectedTicket) return;
     
-    try {
-      setIsTrading(true)
-      const success = await fulfillTicket(selectedTicket, Number(swapAmount))
-
-      if (success) {
-        toast({
-          title: "Trade successful",
-          description: "Your trade has been completed.",
-          variant: "default"
-        })
-        handleClose()
-      }
-    } catch (error) {
-      console.error('Trade failed:', error)
-      toast({
-        title: "Trade failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      })
-    } finally {
-      setIsTrading(false)
+    const validationError = validateTicketFulfillment(selectedTicket, Number(swapAmount), walletAddress);
+    if (validationError) {
+      showValidationError({
+        title: "Cannot fulfill ticket",
+        description: validationError
+      });
+      return;
     }
+    
+    await fulfillMutation.mutateAsync({ 
+      ticket: selectedTicket, 
+      amount: Number(swapAmount) 
+    });
   }
 
   if (!selectedTicket) return null
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => {
-      if (!open) handleClose()
-    }}>
+    <Sheet 
+      open={isOpen} 
+      onOpenChange={(open) => setIsOpen(open)}
+    >
       <SheetContent 
         className="w-[400px] bg-gray-800 text-gray-300 border-gray-700"
         style={{
@@ -173,9 +162,9 @@ export function TicketSidebar() {
             <Button 
               onClick={handleFulfillTicket}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
-              disabled={!swapAmount || Number(swapAmount) <= 0 || isTrading || walletAddress === selectedTicket.creator}
+              disabled={!swapAmount || Number(swapAmount) <= 0 || walletAddress === selectedTicket.creator}
             >
-              {isTrading ? 'Processing...' : walletAddress === selectedTicket.creator ? 'Cannot fulfill own ticket' : 'Fulfill Ticket'}
+              {walletAddress === selectedTicket.creator ? 'Cannot fulfill own ticket' : 'Fulfill Ticket'}
             </Button>
           )}
         </div>

@@ -1,23 +1,27 @@
 import { getAllTokens, getPoolsPage, getSwapEstimate, getUserTokenBalances } from '@/app/queries/abci-queries'
 import { addLiquidity, createPool, swap, withdrawLiquidity } from '@/app/services/tx-service'
 import {
-    AddLiquidityVariables,
-    CreatePoolVariables,
-    SwapVariables,
-    UsePoolsQueryParams,
-    UseSwapEstimateParams,
-    WithdrawLiquidityVariables
+  AddLiquidityVariables,
+  CreatePoolVariables,
+  SwapVariables,
+  UsePoolsQueryParams,
+  UseSwapEstimateParams,
+  WithdrawLiquidityVariables
 } from '@/app/types/tanstack.types'
 import { PoolInfo, TokenBalance, TokenDetails } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { useWalletAddress } from '@/hooks/use-wallet-address'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 
 export function useCreatePoolMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
+  const walletAddress = useWalletAddress()
 
   return useMutation({
     mutationFn: async (variables: CreatePoolVariables) => {
+      if (!walletAddress) throw new Error('Wallet not connected')
+      
       const success = await createPool(
         variables.tokenA,
         variables.tokenB,
@@ -39,6 +43,7 @@ export function useCreatePoolMutation(onSuccess?: () => void) {
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
+      await queryClient.invalidateQueries({ queryKey: ['balances', walletAddress] })
       
       onSuccess?.()
     },
@@ -75,6 +80,17 @@ export function useTokensAndBalances() {
   const tokensQuery = useTokensQuery()
   const balancesQuery = useUserBalancesQuery()
 
+  useEffect(() => {
+    const handleAddressChange = () => {
+      balancesQuery.refetch()
+    }
+
+    window.addEventListener('adenaAddressChanged', handleAddressChange)
+    return () => {
+      window.removeEventListener('adenaAddressChanged', handleAddressChange)
+    }
+  }, [balancesQuery])
+
   return {
     tokens: tokensQuery.data ?? [],
     balances: balancesQuery.data ?? [],
@@ -101,9 +117,12 @@ export function usePoolsQuery({ page, pageSize }: UsePoolsQueryParams) {
 
 export function useSwapMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
+  const walletAddress = useWalletAddress()
 
   return useMutation({
     mutationFn: async (variables: SwapVariables) => {
+      if (!walletAddress) throw new Error('Wallet not connected')
+      
       const success = await swap(
         variables.poolKey,
         variables.tokenKey,
@@ -125,7 +144,7 @@ export function useSwapMutation(onSuccess?: () => void) {
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
-      await queryClient.invalidateQueries({ queryKey: ['balances'] })
+      await queryClient.invalidateQueries({ queryKey: ['balances', walletAddress] })
       
       onSuccess?.()
     },
@@ -141,9 +160,12 @@ export function useSwapMutation(onSuccess?: () => void) {
 
 export function useAddLiquidityMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
+  const walletAddress = useWalletAddress()
 
   return useMutation({
     mutationFn: async (variables: AddLiquidityVariables) => {
+      if (!walletAddress) throw new Error('Wallet not connected')
+      
       const success = await addLiquidity(
         variables.poolKey,
         variables.amountA,
@@ -164,7 +186,7 @@ export function useAddLiquidityMutation(onSuccess?: () => void) {
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
-      await queryClient.invalidateQueries({ queryKey: ['balances'] })
+      await queryClient.invalidateQueries({ queryKey: ['balances', walletAddress] })
       
       onSuccess?.()
     },
@@ -180,9 +202,12 @@ export function useAddLiquidityMutation(onSuccess?: () => void) {
 
 export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient()
+  const walletAddress = useWalletAddress()
 
   return useMutation({
     mutationFn: async (variables: WithdrawLiquidityVariables) => {
+      if (!walletAddress) throw new Error('Wallet not connected')
+      
       const success = await withdrawLiquidity(
         variables.poolKey,
         variables.amount
@@ -202,7 +227,7 @@ export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
-      await queryClient.invalidateQueries({ queryKey: ['balances'] })
+      await queryClient.invalidateQueries({ queryKey: ['balances', walletAddress] })
       
       onSuccess?.()
     },
@@ -217,10 +242,12 @@ export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
 }
 
 export function useSwapEstimateQuery({ poolKey, tokenKey, amount }: UseSwapEstimateParams) {
+  const walletAddress = useWalletAddress()
+  
   return useQuery<number>({
-    queryKey: ['swapEstimate', poolKey, tokenKey, amount],
+    queryKey: ['swapEstimate', poolKey, tokenKey, amount, walletAddress],
     queryFn: () => getSwapEstimate(poolKey, tokenKey, amount || 0),
-    enabled: !!amount && amount > 0,
+    enabled: !!amount && amount > 0 && !!walletAddress,
     staleTime: 1000 * 30,
   })
 } 

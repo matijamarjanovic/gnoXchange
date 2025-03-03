@@ -1,89 +1,38 @@
 'use client'
-import { getTicketsPage } from "@/app/queries/abci-queries";
-import { Ticket, TicketStatus } from '@/app/types/types';
-import { formatTime, getNFTName, getTicketStatusConfig } from '@/app/utils';
-import { NoDataMessage } from "@/components/no-data-mess";
-import { SearchBar } from '@/components/search-bar';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Fuse from 'fuse.js';
-import { Filter } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useLocalStorage } from 'react-use';
-import { PaginationControls } from '../../../components/pagination-controls';
-import { useTicketSidebar } from "../contexts/TicketSidebarContext";
-import { TicketSidebar } from "./ticket-sidebar";
+import { useFilteredTickets, useTicketSearch, useTicketsHistoryQuery } from '@/app/services/ticket-history/mutations-and-queries'
+import { Ticket, TicketStatus } from '@/app/types/types'
+import { getNFTName, getTicketStatusConfig } from '@/app/utils'
+import { NoDataMessage } from "@/components/no-data-mess"
+import { SearchBar } from '@/components/search-bar'
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Filter } from 'lucide-react'
+import { useState } from 'react'
+import { useLocalStorage } from 'react-use'
+import { PaginationControls } from '../../../components/pagination-controls'
+import { useTicketSidebar } from "../contexts/TicketSidebarContext"
+import { TicketSidebar } from "./ticket-sidebar"
+
 const PAGE_SIZE_KEY = 'ticketHistory.pageSize'
 
 export default function TicketHistory() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([])
   const [filterStatus, setFilterStatus] = useState<TicketStatus>('all')
   const { setSelectedTicket, setIsOpen } = useTicketSidebar()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useLocalStorage(PAGE_SIZE_KEY, 25)
-  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [fuse, setFuse] = useState<Fuse<Ticket> | null>(null)
 
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        const ticketsData = await getTicketsPage(1, 10000)
-        
-        setTickets(ticketsData)
-        setFilteredTickets(ticketsData)
-
-        const fuseInstance = new Fuse(ticketsData, {
-          keys: [
-            'id',
-            'creator',
-            'assetIn.tokenHubPath',
-            'assetIn.name',
-            'assetIn.symbol',
-            'assetIn.type',
-            'assetOut.tokenHubPath',
-            'assetOut.name',
-            'assetOut.symbol',
-            'assetOut.type',
-            ],
-          threshold: 0.2,
-          shouldSort: true,
-          minMatchCharLength: 2
-        })
-        setFuse(fuseInstance)
-        setIsLoading(false)
-      } catch (error) {
-        console.error('Error fetching tickets:', error)
-        setIsLoading(false)
-      }
-    }
-
-    fetchTickets()
-  }, [])
-
-  useEffect(() => {
-    let results = tickets
-
-    if (searchQuery && fuse) {
-      const searchResults = fuse.search(searchQuery)
-      results = searchResults.map(result => result.item)
-    }
-
-    if (filterStatus !== 'all') {
-      results = results.filter(ticket => ticket.status === filterStatus)
-    }
-
-    setFilteredTickets(results)
-    setCurrentPage(1)
-  }, [searchQuery, filterStatus, tickets, fuse])
+  const { data: tickets = [], isLoading } = useTicketsHistoryQuery()
+  const fuse = useTicketSearch(tickets)
+  const filteredTickets = useFilteredTickets(tickets, searchQuery, fuse)
+    .filter(ticket => filterStatus === 'all' || ticket.status === filterStatus)
 
   const toggleFilterStatus = () => {
-    const statuses: TicketStatus[] = ['all', 'open', 'fulfilled', 'cancelled', 'expired'];
-    const currentIndex = statuses.indexOf(filterStatus);
-    const nextIndex = (currentIndex + 1) % statuses.length;
-    setFilterStatus(statuses[nextIndex]);
-  };
+    const statuses: TicketStatus[] = ['all', 'open', 'fulfilled', 'cancelled', 'expired']
+    const currentIndex = statuses.indexOf(filterStatus)
+    const nextIndex = (currentIndex + 1) % statuses.length
+    setFilterStatus(statuses[nextIndex])
+  }
 
   const getCurrentPageItems = () => {
     const startIndex = (currentPage - 1) * (pageSize || 25)
@@ -153,7 +102,7 @@ export default function TicketHistory() {
                         {getTicketStatusConfig(ticket.status).label}
                       </span>
                       <span className="text-gray-500">
-                        {formatTime(ticket.createdAt)}
+                        {ticket.createdAt}
                       </span>
                     </div>
                   </div>
