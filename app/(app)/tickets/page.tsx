@@ -2,13 +2,13 @@
 
 import { CreateTicket } from '@/app/(app)/tickets/create-ticket'
 import { SelectedTicket } from '@/app/(app)/tickets/selected-ticket'
-import { useWalletAddress } from '@/hooks/use-wallet-address'
 import { Ticket } from '@/app/types/types'
 import { formatTime } from '@/app/utils'
 import { NoDataMessage } from '@/components/no-data-mess'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useWalletAddress } from '@/hooks/use-wallet-address'
 import { CirclePlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PaginationControls } from '../../../components/pagination-controls'
@@ -135,12 +135,14 @@ export default function TicketsPage() {
               setCurrentPage(1) 
             }}
           />
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredTickets.length / pageSize)}
-            onPageChange={setCurrentPage}
-            variant="minimal"
-          />
+          {filteredTickets.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredTickets.length / pageSize)}
+              onPageChange={setCurrentPage}
+              variant="minimal"
+            />
+          )}
         </div>
         <Button 
           onClick={() => setIsCreatingTicket(true)}

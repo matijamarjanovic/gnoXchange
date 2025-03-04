@@ -155,12 +155,14 @@ export default function NFTMarketPage() {
               setCurrentPage(1)
             }}
           />
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredTickets.length / pageSize)}
-            onPageChange={setCurrentPage}
-            variant="minimal"
-          />
+          {filteredTickets.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredTickets.length / pageSize)}
+              onPageChange={setCurrentPage}
+              variant="minimal"
+            />
+          )}
         </div>
         <Button 
           onClick={() => setIsSellingNFT(true)}

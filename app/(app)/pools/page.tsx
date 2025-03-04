@@ -99,7 +99,17 @@ export default function PoolsPage() {
       )
     }
 
-    return selectedPool ? <SelectedPool pool={selectedPool} /> : null
+    if (selectedPool) {
+      return <SelectedPool pool={selectedPool} />
+    } else if (!pools || pools.length === 0) {
+      return (
+        <CreatePool
+          onCloseAction={() => setIsCreatingPool(false)}
+        />
+      )
+    }
+    
+    return null
   }
 
   const hasLPTokens = (pool: PoolInfo) => {
@@ -149,12 +159,14 @@ export default function PoolsPage() {
               setCurrentPage(1) 
             }}
           />
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredPools.length / pageSize)}
-            onPageChange={setCurrentPage}
-            variant="minimal"
-          />
+          {filteredPools.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredPools.length / pageSize)}
+              onPageChange={setCurrentPage}
+              variant="minimal"
+            />
+          )}
         </div>
         <Button 
           onClick={() => setIsCreatingPool(true)}
