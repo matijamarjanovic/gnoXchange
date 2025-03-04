@@ -44,9 +44,9 @@ func renderHome() string {
 
 	str += md.H2("Navigation")
 	links := []string{
-		"[Liquidity Pools](/r/matijamarjanovic/gnoxchange:pools) - View and interact with liquidity pools", // TODO: change to gno.land
-		"[Ticket System](/r/matijamarjanovic/gnoxchange:ticketing) - Create and manage swap tickets",       // TODO: change to gno.land
-		"[NFT Market](/r/matijamarjanovic/gnoxchange:nftmarket) - Create and manage NFT tickets",           // TODO: change to gno.land
+		"[Liquidity Pools](/r/matijamarjanovic/gnoxchange:pools) - View and interact with liquidity pools", 					
+		"[Ticket System](/r/matijamarjanovic/gnoxchange:ticketing) - Create and manage swap tickets",      
+		"[NFT Market](/r/matijamarjanovic/gnoxchange:nftmarket) - Create and manage NFT tickets",          
 	}
 	str += md.BulletList(links)
 

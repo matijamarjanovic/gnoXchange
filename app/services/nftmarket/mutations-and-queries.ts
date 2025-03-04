@@ -1,15 +1,15 @@
 import { getOpenNFTTicketsPage, getUserNFTBalances } from '@/app/queries/abci-queries'
 import { AdenaService } from '@/app/services/adena-service'
 import { buyNFT, cancelTicket, createNFTTicket } from '@/app/services/tx-service'
+import {
+  BuyNFTVariables,
+  CreateNFTTicketVariables,
+  NFTBalancesResult
+} from '@/app/types/tanstack.types'
 import { NFTDetails, Ticket } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import {
-  CreateNFTTicketVariables,
-  BuyNFTVariables,
-  NFTBalancesResult
-} from '@/app/types/tanstack.types'
 
 export function useNFTTicketsQuery(page: number, pageSize: number) {
   return useQuery<Ticket[]>({
@@ -75,7 +75,10 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
         description: "NFT listed for sale successfully",
         variant: "default"
       })
-      await queryClient.invalidateQueries({ queryKey: ['nft-tickets'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
+        queryClient.invalidateQueries({ queryKey: ['nft-balances'] })
+      ])
       onSuccess?.()
     },
     onError: (error: Error) => {

@@ -1,8 +1,8 @@
 'use client'
 
-import { getAllTokens, getUserNFTBalances, getUserTokenBalances } from "@/app/queries/abci-queries"
+import { getAllTokens, getUserTokenBalances } from "@/app/queries/abci-queries"
 import { AdenaService } from "@/app/services/adena-service"
-import { createNFTTicket } from "@/app/services/tx-service"
+import { useCreateNFTTicketMutation, useNFTBalances } from "@/app/services/nftmarket/mutations-and-queries"
 import { Asset, NFTDetails, TokenBalance, TokenDetails } from "@/app/types/types"
 import { formatAmount, getNFTName, showValidationError } from "@/app/utils"
 import { Toggle } from "@/components/ui/toggle"
@@ -13,6 +13,7 @@ import { Card } from "../../../components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
 import { Input } from "../../../components/ui/input"
 import { NFTMarketValidations } from '../../services/nftmarket/validations'
+
 interface SellNFTProps {
   onCloseAction: () => void
   onSubmitAction: (nft: NFTDetails, assetType: Asset, amount: string) => void
@@ -22,12 +23,19 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
   const [nftDetails, setNftDetails] = useState<NFTDetails | null>(null)
   const [assetOutType, setAssetOutType] = useState<Asset | null>(null)
   const [amountOut, setAmountOut] = useState<string>('')
-  const [isSelling, setIsSelling] = useState(false)
+  const [showLPTokens, setShowLPTokens] = useState(false)
+  const [expiryHours, setExpiryHours] = useState<string>('')
+  
+  const { nfts, isLoading } = useNFTBalances()
   const [tokens, setTokens] = useState<TokenDetails[]>([])
   const [userBalances, setUserBalances] = useState<TokenBalance[]>([])
-  const [showLPTokens, setShowLPTokens] = useState(false)
-  const [nfts, setNfts] = useState<NFTDetails[]>([])
-  const [expiryHours, setExpiryHours] = useState<string>('')
+
+  const createNFTTicketMutation = useCreateNFTTicketMutation(() => {
+    if (nftDetails && assetOutType) {
+      onSubmitAction(nftDetails, assetOutType, amountOut)
+      onCloseAction()
+    }
+  })
 
   const nativeCoin: Asset = {
     type: 'coin',
@@ -39,14 +47,12 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
 
   const fetchData = async () => {
     try {
-      const [fetchedTokens, fetchedBalances, fetchedNFTs] = await Promise.all([
+      const [fetchedTokens, fetchedBalances] = await Promise.all([
         getAllTokens(),
-        getUserTokenBalances(AdenaService.getInstance().getAddress() || ''),
-        getUserNFTBalances(AdenaService.getInstance().getAddress() || '')
+        getUserTokenBalances(AdenaService.getInstance().getAddress() || '')
       ])
       setTokens(fetchedTokens)
       setUserBalances(fetchedBalances)
-      setNfts(fetchedNFTs)
     } catch (error) {
       console.error('Failed to fetch data:', error)
     }
@@ -110,30 +116,13 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
       return;
     }
 
-    try {
-      setIsSelling(true)
-      
-      const success = await createNFTTicket(
-        nftDetails?.key || '',
-        assetOutType?.type as 'coin' | 'token' || 'coin',
-        assetOutType?.type === 'coin' ? assetOutType?.denom || '' : assetOutType?.path || '',
-        parseInt(amountOut.replaceAll(' ', '')),
-        parseInt(expiryHours.trim())
-      );
-
-      if (success) {
-        onSubmitAction(nftDetails!, assetOutType!, amountOut)
-        onCloseAction()
-      } else {
-        console.error("Failed to create NFT ticket")
-        // todo: add error handling UI here
-      }
-    } catch (error) {
-      console.error("Error creating NFT ticket:", error)
-      // todo: add error handling UI here
-    } finally {
-      setIsSelling(false)
-    }
+    createNFTTicketMutation.mutate({
+      nftPath: nftDetails?.key || '',
+      assetOutType: assetOutType?.type as 'coin' | 'token' || 'coin',
+      assetOutPath: assetOutType?.type === 'coin' ? assetOutType?.denom || '' : assetOutType?.path || '',
+      minAmountOut: parseInt(amountOut.replaceAll(' ', '')),
+      expiryHours: parseInt(expiryHours.trim())
+    })
   }
 
   return (
@@ -161,7 +150,11 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
           </Button>
         </div>
       </div>
-      {nfts.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-8">
+          <p className="text-gray-400 mb-4">Loading your NFTs...</p>
+        </div>
+      ) : nfts.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-400 mb-4">You don&apos;t have any NFTs available to sell.</p>
           <Button 
@@ -265,10 +258,10 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
           <Button 
             type="submit" 
             className="w-full bg-blue-700 hover:bg-blue-600 text-gray-300 transition-all shadow-md"
-            disabled={isSelling}
+            disabled={createNFTTicketMutation.isPending}
           >
-            <DollarSign className={`mr-2 h-4 w-4 transition-all duration-500 ${isSelling ? 'rotate-[360deg] scale-110' : ''}`} />
-            {isSelling ? 'Listing NFT...' : 'Sell NFT'}
+            <DollarSign className={`mr-2 h-4 w-4 transition-all duration-500 ${createNFTTicketMutation.isPending ? 'rotate-[360deg] scale-110' : ''}`} />
+            {createNFTTicketMutation.isPending ? 'Listing NFT...' : 'Sell NFT'}
           </Button>
         </form>
       )}
