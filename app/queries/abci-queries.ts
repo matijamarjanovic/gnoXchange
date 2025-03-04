@@ -33,8 +33,7 @@ export async function getPoolsPage(page: number, pageSize: number): Promise<Pool
       REALM_PATH,
       `GetPoolsPageInfoString("?page=${page}&size=${pageSize}")`
     )
-    if (!poolsData || poolsData === '( string)') {
-      console.error('No pools data received')
+    if (!poolsData || poolsData === '( string)\n(undefined)') {
       return []
     }
 
@@ -118,8 +117,7 @@ export async function getOpenTicketsPage(page: number, pageSize: number): Promis
       REALM_PATH,
       `GetOpenTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || ticketsData === '( string)') {
-      console.error('No tickets data received')
+    if (!ticketsData || ticketsData === '( string)\n(undefined)') {
       return []
     }
 
@@ -249,8 +247,7 @@ export async function getAllNFTTicketsPage(page: number, pageSize: number): Prom
       REALM_PATH,
       `GetAllNFTTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || ticketsData === '( string)') {
-      console.error('No NFT tickets data received')
+    if (!ticketsData || ticketsData === '( string)\n(undefined)') {
       return []
     }
 
@@ -273,8 +270,7 @@ export async function getOpenNFTTicketsPage(page: number, pageSize: number): Pro
       REALM_PATH,
       `GetOpenNFTTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
-    if (!ticketsData || ticketsData === '( string)') {
-      console.error('No open NFT tickets data received')
+    if (!ticketsData || ticketsData === '( string)\n(undefined)') {
       return []
     }
 
@@ -376,8 +372,7 @@ export async function getTicketsPage(page: number, pageSize: number): Promise<Ti
       `GetTicketsPageInfoString("?page=${page}&size=${pageSize}")`,
     )
     
-    if (!ticketsData || ticketsData === '( string)') {
-      console.error('No tickets data received')
+    if (!ticketsData || ticketsData === '( string)\n(undefined)') {
       return []
     }
 
