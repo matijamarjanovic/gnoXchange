@@ -88,22 +88,16 @@ export function CreatePool({ onCloseAction }: CreatePoolProps) {
   }
 
   const getFilteredAssetsB = () => {
-    return filteredAssets.filter(asset => {
+    return filteredAssets.filter(() => {
       if (createPoolForm.tokenA === '') return true;
-      if (asset.type === 'coin' && assetAType?.type === 'coin') {
-        return asset.denom !== assetAType.denom;
-      }
-      return asset.type === 'coin' || asset.path !== createPoolForm.tokenA;
+      return true;
     });
   }
 
   const getFilteredAssetsA = () => {
-    return filteredAssets.filter(asset => {
+    return filteredAssets.filter(() => {
       if (createPoolForm.tokenB === '') return true;
-      if (asset.type === 'coin' && assetBType?.type === 'coin') {
-        return asset.denom !== assetBType.denom;
-      }
-      return asset.type === 'coin' || asset.path !== createPoolForm.tokenB;
+      return true;
     });
   }
 
@@ -151,16 +145,27 @@ export function CreatePool({ onCloseAction }: CreatePoolProps) {
             >
               {getFilteredAssetsA().map((asset, index) => {
                 const balance = balances.find(b => b.tokenKey === asset.path)
+                const isDisabled = assetBType && (
+                  (asset.type === 'coin' && assetBType.type === 'coin') ||
+                  (asset.type === 'token' && asset.path === assetBType.path)
+                )
                 return (
                   <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    className={`flex justify-between items-center ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-gray-800'
+                    }`} 
                     key={index} 
+                    disabled={isDisabled!}
                     onClick={() => {
-                      setAssetAType(asset)
-                      setCreatePoolForm(prev => ({
-                        ...prev,
-                        tokenA: asset.path!
-                      }))
+                      if (!isDisabled) {
+                        setAssetAType(asset)
+                        setCreatePoolForm(prev => ({
+                          ...prev,
+                          tokenA: asset.path!
+                        }))
+                      }
                     }}
                   >
                     <span>{asset.symbol}</span>
@@ -192,16 +197,27 @@ export function CreatePool({ onCloseAction }: CreatePoolProps) {
             >
               {getFilteredAssetsB().map((asset, index) => {
                 const balance = balances.find(b => b.tokenKey === asset.path)
+                const isDisabled = assetAType && (
+                  (asset.type === 'coin' && assetAType.type === 'coin') ||
+                  (asset.type === 'token' && asset.path === assetAType.path)
+                )
                 return (
                   <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex justify-between items-center" 
+                    className={`flex justify-between items-center ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-gray-800'
+                    }`} 
                     key={index} 
+                    disabled={isDisabled!}
                     onClick={() => {
-                      setAssetBType(asset)
-                      setCreatePoolForm(prev => ({
-                        ...prev,
-                        tokenB: asset.path!
-                      }))
+                      if (!isDisabled) {
+                        setAssetBType(asset)
+                        setCreatePoolForm(prev => ({
+                          ...prev,
+                          tokenB: asset.path!
+                        }))
+                      }
                     }}
                   >
                     <span>{asset.symbol}</span>
