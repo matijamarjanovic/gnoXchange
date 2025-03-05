@@ -16,7 +16,6 @@ export function useNFTTicketsQuery(page: number, pageSize: number) {
     queryKey: ['nft-tickets', page, pageSize],
     queryFn: () => getOpenNFTTicketsPage(page, pageSize),
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 60, 
   })
 }
 
@@ -25,7 +24,6 @@ export function useUserNFTBalancesQuery(address: string | null) {
     queryKey: ['nft-balances', address],
     queryFn: () => getUserNFTBalances(address || ''),
     enabled: !!address,
-    staleTime: 1000 * 60, 
   })
 }
 

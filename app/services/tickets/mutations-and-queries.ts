@@ -58,7 +58,6 @@ export function useTokensQuery() {
   return useQuery<TokenDetails[]>({
     queryKey: ['tokens'],
     queryFn: getAllTokens,
-    staleTime: 1000 * 60 * 5,
   })
 }
 
@@ -67,7 +66,6 @@ export function useUserBalancesQuery(address: string | null) {
     queryKey: ['balances', address],
     queryFn: () => getUserTokenBalances(address || ''),
     enabled: !!address,
-    staleTime: 1000 * 60,
   })
 }
 
@@ -111,7 +109,6 @@ export function useTicketsQuery({ page, pageSize }: UseTicketsQueryParams) {
       );
     },
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 30, 
   })
 }
 

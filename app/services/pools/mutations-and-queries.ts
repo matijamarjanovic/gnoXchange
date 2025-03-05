@@ -61,7 +61,6 @@ export function useTokensQuery() {
   return useQuery<TokenDetails[]>({
     queryKey: ['tokens'],
     queryFn: getAllTokens,
-    staleTime: 1000 * 60 * 5,
   })
 }
 
@@ -72,7 +71,6 @@ export function useUserBalancesQuery() {
     queryKey: ['balances', walletAddress],
     queryFn: () => getUserTokenBalances(walletAddress || ''),
     enabled: !!walletAddress,
-    staleTime: 1000 * 60,
   })
 }
 
@@ -111,7 +109,6 @@ export function usePoolsQuery({ page, pageSize }: UsePoolsQueryParams) {
     queryKey: ['pools', page, pageSize],
     queryFn: () => getPoolsPage(page, pageSize),
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 30,
   })
 }
 
@@ -248,6 +245,5 @@ export function useSwapEstimateQuery({ poolKey, tokenKey, amount }: UseSwapEstim
     queryKey: ['swapEstimate', poolKey, tokenKey, amount, walletAddress],
     queryFn: () => getSwapEstimate(poolKey, tokenKey, amount || 0),
     enabled: !!amount && amount > 0 && !!walletAddress,
-    staleTime: 1000 * 30,
   })
 } 
