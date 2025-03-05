@@ -7,7 +7,8 @@ export class GnoService {
   private static instance: GnoService | null = null
   private static defaultRpcUrls = [
     'http://localhost:26657/',
-    'https://rpc.gno.land:443/'
+    'https://rpc.gno.land:443/',
+    'https://rpc.test5.gno.land/'
   ]
 
   private constructor(rpcUrls: string[] = GnoService.defaultRpcUrls) {
@@ -25,7 +26,18 @@ export class GnoService {
   changeProvider(index: number) {
     if (index >= 0 && index < this.providers.length) {
       this.provider = this.providers[index]
+      console.log(`Changed provider to: ${this.provider}`)
+      return true
     }
+    return false
+  }
+
+  getCurrentProvider() {
+    return this.provider.toString()
+  }
+
+  getProviders() {
+    return this.providers.map(provider => provider.toString())
   }
 
   async getPackageData(packagePath: string, expression: string) {
