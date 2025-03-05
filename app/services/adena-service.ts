@@ -1,4 +1,5 @@
 import { AdenaSDK } from '@adena-wallet/sdk';
+import { GnoService } from './abci-service';
 
 export class AdenaService {
   private static instance: AdenaService;
@@ -43,6 +44,18 @@ export class AdenaService {
         }
       }});
 
+      this.sdk.onChangeNetwork({ callback: (network: string) => {
+        console.log('Network changed:', network);
+        this.updateStoredNetwork(network);
+        this.updateGnoServiceProvider(network);
+      }});
+
+      const account = await this.sdk.getAccount();
+      if (account && account.data?.chainId) {
+        this.updateStoredNetwork(account.data.chainId);
+        this.updateGnoServiceProvider(account.data.chainId);
+      }
+
     } catch (error) {
       console.error('Failed to reconnect wallet:', error);
       this.clearStoredAddress();
@@ -64,10 +77,22 @@ export class AdenaService {
         }
       }});
 
+      this.sdk.onChangeNetwork({ callback: (network: string) => {
+        console.log('Network changed:', network);
+        this.updateStoredNetwork(network);
+        this.updateGnoServiceProvider(network);
+      }});
+
       const account = await this.sdk.getAccount();
       
       if (account && account.data?.address) {
         this.updateStoredAddress(account.data.address);
+        
+        if (account.data?.chainId) {
+          this.updateStoredNetwork(account.data.chainId);
+          this.updateGnoServiceProvider(account.data.chainId);
+        }
+        
         return account.data.address;
       }
 
@@ -132,5 +157,31 @@ export class AdenaService {
   public async getNetwork(): Promise<string> {
     const account = await this.sdk.getAccount();
     return account.data?.chainId || '';
+  }
+
+  private updateStoredNetwork(network: string): void {
+    localStorage.setItem(this.NETWORK_KEY, network);
+    const event = new CustomEvent('adenaNetworkChanged', {
+      detail: { newNetwork: network }
+    });
+    window.dispatchEvent(event);
+  }
+  
+  private updateGnoServiceProvider(network: string): void {
+    const gnoService = GnoService.getInstance();
+    
+    switch (network) {
+      case 'dev':
+        gnoService.changeProvider(0); // localhost
+        break;
+      case 'portal-loop':
+        gnoService.changeProvider(1); // rpc.gno.land
+        break;
+      case 'test5':
+        gnoService.changeProvider(2); // test5
+        break;
+      default:
+        console.log(`Unknown network: ${network}, using default provider`);
+    }
   }
 }
