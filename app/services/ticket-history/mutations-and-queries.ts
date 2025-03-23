@@ -56,25 +56,29 @@ export function useFulfillTicketMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async ({ ticket, amount }: { ticket: Ticket, amount: number }) => {
-      return await fulfillTicket(ticket, amount)
-    },
-    onSuccess: async (success) => {
-      if (success) {
-        toast({
-          variant: "success",
-          title: "Trade successful",
-          description: "Your trade has been completed.",
-        })
-        await queryClient.invalidateQueries({ queryKey: ['tickets-history'] })
-        onSuccess?.()
+      const response = await fulfillTicket(ticket, amount)
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to fulfill ticket')
       }
+      return true
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Trade successful",
+        description: "Your trade has been completed.",
+        variant: "success",
+        
+      })
+      await queryClient.invalidateQueries({ queryKey: ['tickets-history'] })
+      onSuccess?.()
     },
     onError: (error: Error) => {
       console.error('Trade failed:', error)
       toast({
         title: "Trade failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
+        variant: "destructive",
+        
       })
     }
   })

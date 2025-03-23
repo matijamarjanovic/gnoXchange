@@ -22,24 +22,25 @@ export function useCreatePoolMutation(onSuccess?: () => void) {
     mutationFn: async (variables: CreatePoolVariables) => {
       if (!walletAddress) throw new Error('Wallet not connected')
       
-      const success = await createPool(
+      const response = await createPool(
         variables.tokenA,
         variables.tokenB,
         variables.amountA,
         variables.amountB
       )
       
-      if (!success) {
-        throw new Error('Failed to create pool')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to create pool')
       }
       
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "Pool created successfully",
-        variant: "default"
+        variant: "success",
+        
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
@@ -49,9 +50,10 @@ export function useCreatePoolMutation(onSuccess?: () => void) {
     },
     onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to create pool"
+        description: error.message || "Failed to create pool",
+        variant: "destructive",
+        
       })
     }
   })
@@ -120,24 +122,25 @@ export function useSwapMutation(onSuccess?: () => void) {
     mutationFn: async (variables: SwapVariables) => {
       if (!walletAddress) throw new Error('Wallet not connected')
       
-      const success = await swap(
+      const response = await swap(
         variables.poolKey,
         variables.tokenKey,
         variables.amount,
         variables.minAmountOut
       )
       
-      if (!success) {
-        throw new Error('Failed to execute swap')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to execute swap')
       }
       
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "Swap executed successfully",
-        variant: "default"
+        variant: "success",
+        
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
@@ -147,9 +150,10 @@ export function useSwapMutation(onSuccess?: () => void) {
     },
     onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to execute swap"
+        description: error.message || "Failed to execute swap",
+        variant: "destructive",
+        
       })
     }
   })
@@ -163,23 +167,24 @@ export function useAddLiquidityMutation(onSuccess?: () => void) {
     mutationFn: async (variables: AddLiquidityVariables) => {
       if (!walletAddress) throw new Error('Wallet not connected')
       
-      const success = await addLiquidity(
+      const response = await addLiquidity(
         variables.poolKey,
         variables.amountA,
         variables.amountB
       )
       
-      if (!success) {
-        throw new Error('Failed to add liquidity')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to add liquidity')
       }
       
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "Liquidity added successfully",
-        variant: "default"
+        variant: "success",
+        
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
@@ -189,9 +194,10 @@ export function useAddLiquidityMutation(onSuccess?: () => void) {
     },
     onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to add liquidity"
+        description: error.message || "Failed to add liquidity",
+        variant: "destructive",
+        
       })
     }
   })
@@ -205,22 +211,23 @@ export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
     mutationFn: async (variables: WithdrawLiquidityVariables) => {
       if (!walletAddress) throw new Error('Wallet not connected')
       
-      const success = await withdrawLiquidity(
+      const response = await withdrawLiquidity(
         variables.poolKey,
         variables.amount
       )
       
-      if (!success) {
-        throw new Error('Failed to withdraw liquidity')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to withdraw liquidity')
       }
       
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "Liquidity withdrawn successfully",
-        variant: "default"
+        variant: "success",
+        
       })
       
       await queryClient.invalidateQueries({ queryKey: ['pools'] })
@@ -230,9 +237,10 @@ export function useWithdrawLiquidityMutation(onSuccess?: () => void) {
     },
     onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to withdraw liquidity"
+        description: error.message || "Failed to withdraw liquidity",
+        variant: "destructive",
+        
       })
     }
   })

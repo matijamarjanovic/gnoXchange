@@ -55,23 +55,24 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
 
   return useMutation<boolean, Error, CreateNFTTicketVariables>({
     mutationFn: async (variables) => {
-      const success = await createNFTTicket(
+      const response = await createNFTTicket(
         variables.nftPath,
         variables.assetOutType as 'coin' | 'token',
         variables.assetOutPath,
         variables.minAmountOut,
         variables.expiryHours
       )
-      if (!success) {
-        throw new Error('Failed to create NFT ticket')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to create NFT ticket')
       }
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "NFT listed for sale successfully",
         variant: "success",
+        
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -84,6 +85,7 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
         title: "Error",
         description: error.message || "Failed to list NFT for sale",
         variant: "destructive",
+        
       })
     }
   })
@@ -94,22 +96,23 @@ export function useBuyNFTMutation(onSuccess?: () => void) {
 
   return useMutation<boolean, Error, BuyNFTVariables>({
     mutationFn: async (variables) => {
-      const success = await buyNFT(
+      const response = await buyNFT(
         variables.ticketId,
         variables.amount,
         variables.assetType as 'coin' | 'token',
         variables.assetPath
       )
-      if (!success) {
-        throw new Error('Failed to buy NFT')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to buy NFT')
       }
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "NFT purchased successfully",
         variant: "success",
+        
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -122,6 +125,7 @@ export function useBuyNFTMutation(onSuccess?: () => void) {
         title: "Error",
         description: error.message || "Failed to purchase NFT",
         variant: "destructive",
+        
       })
     }
   })
@@ -132,17 +136,18 @@ export function useCancelNFTSaleMutation(onSuccess?: () => void) {
 
   return useMutation<boolean, Error, Ticket>({
     mutationFn: async (ticket) => {
-      const success = await cancelTicket(ticket)
-      if (!success) {
-        throw new Error('Failed to cancel NFT sale')
+      const response = await cancelTicket(ticket)
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to cancel NFT sale')
       }
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "NFT sale cancelled successfully",
         variant: "success",
+        
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -155,6 +160,7 @@ export function useCancelNFTSaleMutation(onSuccess?: () => void) {
         title: "Error",
         description: error.message || "Failed to cancel NFT sale",
         variant: "destructive",
+        
       })
     }
   })

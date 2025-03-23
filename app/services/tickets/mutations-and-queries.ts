@@ -2,9 +2,9 @@ import { getAllTokens, getOpenTicketsPage, getUserTokenBalances } from '@/app/qu
 import { AdenaService } from '@/app/services/adena-service'
 import { cancelTicket, createTicket, fulfillTicket } from '@/app/services/tx-service'
 import {
-    CreateTicketVariables,
-    FulfillTicketVariables,
-    UseTicketsQueryParams
+  CreateTicketVariables,
+  FulfillTicketVariables,
+  UseTicketsQueryParams
 } from '@/app/types/tanstack.types'
 import { Ticket, TokenBalance, TokenDetails } from '@/app/types/types'
 import { toast } from '@/hooks/use-toast'
@@ -17,7 +17,7 @@ export function useCreateTicketMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (variables: CreateTicketVariables) => {
-      const success = await createTicket(
+      const response = await createTicket(
         variables.assetInType,
         variables.assetOutType,
         variables.assetInPath,
@@ -27,17 +27,17 @@ export function useCreateTicketMutation(onSuccess?: () => void) {
         variables.expiryHours
       )
       
-      if (!success) {
-        throw new Error('Failed to create ticket')
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to create ticket')
       }
       
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Success",
         description: "Ticket created successfully",
-        variant: "default"
+        variant: "success",
       })
       
       await queryClient.invalidateQueries({ queryKey: ['tickets'] })
@@ -46,9 +46,9 @@ export function useCreateTicketMutation(onSuccess?: () => void) {
     },
     onError: (error: Error) => {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to create ticket"
+        description: error.message || "Failed to create ticket",
+        variant: "destructive",
       })
     }
   })
@@ -149,17 +149,17 @@ export function useFulfillTicketMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async ({ ticket, amount }: FulfillTicketVariables) => {
-      const success = await fulfillTicket(ticket, amount)
-      if (!success) {
-        throw new Error('Failed to fulfill ticket')
+      const response = await fulfillTicket(ticket, amount)
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to fulfill ticket')
       }
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Trade successful",
         description: "Your trade has been completed.",
-        variant: "default"
+        variant: "success",
       })
       await queryClient.invalidateQueries({ queryKey: ['tickets'] })
       onSuccess?.()
@@ -168,7 +168,7 @@ export function useFulfillTicketMutation(onSuccess?: () => void) {
       toast({
         title: "Trade failed",
         description: error.message || "An unexpected error occurred",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   })
@@ -179,17 +179,17 @@ export function useCancelTicketMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (ticket: Ticket) => {
-      const success = await cancelTicket(ticket)
-      if (!success) {
-        throw new Error('Failed to cancel ticket')
+      const response = await cancelTicket(ticket)
+      if (response.code !== 0) {
+        throw new Error(response.message || 'Failed to cancel ticket')
       }
-      return success
+      return true
     },
     onSuccess: async () => {
       toast({
         title: "Ticket cancelled",
         description: "Your ticket has been cancelled successfully.",
-        variant: "default"
+        variant: "success",
       })
       await queryClient.invalidateQueries({ queryKey: ['tickets'] })
       onSuccess?.()
@@ -198,7 +198,7 @@ export function useCancelTicketMutation(onSuccess?: () => void) {
       toast({
         title: "Cancel failed",
         description: error.message || "An unexpected error occurred",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   })

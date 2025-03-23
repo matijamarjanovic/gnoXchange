@@ -5,7 +5,7 @@ import { Ticket } from "../types/types";
 
 const GNO_EXCHANGE_PATH = "gno.land/r/matijamarjanovic/gnoxchange"
 
-export async function approveAllTokens(revokeApproval?: boolean): Promise<boolean> {
+export async function approveAllTokens(revokeApproval?: boolean) {
   const adenaService = AdenaService.getInstance();
   let amount = 0
   if (!adenaService.isConnected()) {
@@ -76,14 +76,14 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error approving tokens:", error);
     throw error;
   }
 }
 
-export async function approveTokenAmounts(tokenAmounts: Record<string, number>): Promise<boolean> {
+export async function approveTokenAmounts(tokenAmounts: Record<string, number>) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -145,14 +145,14 @@ export async function approveTokenAmounts(tokenAmounts: Record<string, number>):
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error approving token amounts:", error);
     throw error;
   }
 }
 
-export async function fulfillTicket(ticket: Ticket, amountOut: number): Promise<boolean> {
+export async function fulfillTicket(ticket: Ticket, amountOut: number) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -215,7 +215,7 @@ func main() {
   try {
     
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error fulfilling ticket:", error);
     throw error;
@@ -230,7 +230,7 @@ export async function createTicket(
   amountIn: number,
   minAmountOut: number,
   expiryHours: number
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -321,14 +321,14 @@ func main() {${approvalCode}
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error creating ticket:", error);
     throw error;
   }
 }
 
-export async function cancelTicket(ticket: Ticket): Promise<boolean> {
+export async function cancelTicket(ticket: Ticket) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -357,7 +357,7 @@ export async function cancelTicket(ticket: Ticket): Promise<boolean> {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error cancelling ticket:", error);
     throw error;
@@ -370,7 +370,7 @@ export async function createNFTTicket(
   assetOutPath: string,
   minAmountOut: number,
   expiryHours: number
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -433,7 +433,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error creating NFT ticket:", error);
     throw error;
@@ -445,7 +445,7 @@ export async function buyNFT(
   amountOut: number,
   paymentType: 'coin' | 'token',
   paymentPath?: string
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -521,7 +521,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error buying NFT:", error);
     throw error;
@@ -533,7 +533,7 @@ export async function createPool(
   tokenB: string,
   amountA: number,
   amountB: number,
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -601,7 +601,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error creating pool:", error);
     throw error;
@@ -612,7 +612,7 @@ export async function addLiquidity(
   poolKey: string,
   amountA: number,
   amountB: number
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -679,7 +679,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error adding liquidity:", error);
     throw error;
@@ -689,7 +689,7 @@ func main() {
 export async function withdrawLiquidity(
   poolKey: string,
   lpAmount: number
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -718,7 +718,7 @@ export async function withdrawLiquidity(
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error withdrawing liquidity:", error);
     throw error;
@@ -730,7 +730,7 @@ export async function swap(
   tokenInKey: string,
   amountIn: number,
   minAmountOut: number
-): Promise<boolean> {
+) {
   const adenaService = AdenaService.getInstance();
   
   if (!adenaService.isConnected()) {
@@ -788,7 +788,7 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    return response.code === 0;
+    return response;
   } catch (error) {
     console.error("Error executing swap:", error);
     throw error;
