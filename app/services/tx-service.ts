@@ -215,8 +215,6 @@ func main() {
   try {
     
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-
-    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error fulfilling ticket:", error);
@@ -303,8 +301,6 @@ func main() {${approvalCode}
         }]
       };
 
-      console.log(gnoPackage.files[0].body);
-
       tx = TransactionBuilder.create()
         .messages(
           makeMsgRunMessage({
@@ -325,8 +321,6 @@ func main() {${approvalCode}
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-
-    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error creating ticket:", error);
@@ -506,8 +500,6 @@ func main() {
 }`
         }]
       };
-      console.log(gnoPackage.files[0].body);
-
 
       tx = TransactionBuilder.create()
         .messages(
@@ -522,7 +514,7 @@ func main() {
         .memo("")
         .build();
     }
-    console.log(tx.fee)
+
     const transactionRequest = {
       tx,
       broadcastType: BroadcastType.COMMIT
@@ -590,7 +582,6 @@ func main() {
 }`
         }]
       };
-      console.log(gnoPackage.files[0].body);
 
     const tx = TransactionBuilder.create()
       .messages(
@@ -610,7 +601,6 @@ func main() {
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error creating pool:", error);
@@ -670,8 +660,6 @@ func main() {
       }]
     };
 
-    console.log(gnoPackage.files[0].body);
-
     const tx = TransactionBuilder.create()
       .messages(
         makeMsgRunMessage({
@@ -730,7 +718,6 @@ export async function withdrawLiquidity(
     };
 
     const response = await adenaService.getSdk().broadcastTransaction(transactionRequest);
-    console.log(response);
     return response.code === 0;
   } catch (error) {
     console.error("Error withdrawing liquidity:", error);
@@ -781,8 +768,6 @@ func main() {
 }`
       }]
     };
-
-    console.log(gnoPackage.files[0].body);
 
     const tx = TransactionBuilder.create()
       .messages(

@@ -26,7 +26,7 @@ export class GnoService {
   changeProvider(index: number) {
     if (index >= 0 && index < this.providers.length) {
       this.provider = this.providers[index]
-      console.log(`Changed provider to: ${this.provider}`)
+      console.log(`Changed provider`)
       return true
     }
     return false
