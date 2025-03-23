@@ -60,6 +60,10 @@ var (
 )
 
 func init() {
+	initHelper()
+}
+
+func initHelper() {
 	poolRegistry = &PoolRegistry{
 		pools: avl.NewTree(),
 	}
@@ -70,5 +74,5 @@ func init() {
 		openNFTTickets: avl.NewTree(),
 	}
 
-	hof.Register()
+	hof.Register("gnoXchange", "Decentralized exchange for gno.land for p2p, amm and nft-to-token swaps")
 }

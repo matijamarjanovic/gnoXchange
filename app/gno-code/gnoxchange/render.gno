@@ -7,6 +7,7 @@ import (
 
 	"gno.land/p/demo/ufmt"
 	"gno.land/p/moul/md"
+	"gno.land/p/moul/txlink"
 	"gno.land/r/matijamarjanovic/tokenhub"
 )
 
@@ -44,9 +45,9 @@ func renderHome() string {
 
 	str += md.H2("Navigation")
 	links := []string{
-		"[Liquidity Pools](/r/matijamarjanovic/gnoxchange:pools) - View and interact with liquidity pools", 					
-		"[Ticket System](/r/matijamarjanovic/gnoxchange:ticketing) - Create and manage swap tickets",      
-		"[NFT Market](/r/matijamarjanovic/gnoxchange:nftmarket) - Create and manage NFT tickets",          
+		"[Liquidity Pools](/r/matijamarjanovic/gnoxchange:pools) - View and interact with liquidity pools", // TODO: change to gno.land
+		"[Ticket System](/r/matijamarjanovic/gnoxchange:ticketing) - Create and manage swap tickets",       // TODO: change to gno.land
+		"[NFT Market](/r/matijamarjanovic/gnoxchange:nftmarket) - Create and manage NFT tickets",           // TODO: change to gno.land
 	}
 	str += md.BulletList(links)
 
@@ -71,6 +72,29 @@ func renderTickets(path string) string {
 	var str string
 	str += md.H2("Ticket System")
 	str += md.Paragraph("View all open tickets for coin and token swaps.")
+
+	str += md.Paragraph(
+		"[Create Coin to Token Ticket](" + txlink.Call("CreateCoinToTokenTicket",
+			"coinDenom", "ugnot",
+			"tokenKey", "",
+			"minAmountOut", "0",
+			"expiryHours", "24") + ")" +
+			" | " +
+			"[Create Token to Coin Ticket](" + txlink.Call("CreateTokenToCoinTicket",
+			"tokenKey", "",
+			"coinDenom", "ugnot",
+			"amountIn", "0",
+			"minAmountOut", "0",
+			"expiryHours", "24") + ")" +
+			" | " +
+			"[Create Token to Token Ticket](" + txlink.Call("CreateTokenToTokenTicket",
+			"tokenInKey", "",
+			"tokenOutKey", "",
+			"amountIn", "0",
+			"minAmountOut", "0",
+			"expiryHours", "24") + ")")
+
+	str += md.HorizontalRule()
 
 	page := GetAllOpenNonNFTTickets(path)
 	if len(page.Items) == 0 {
@@ -124,12 +148,16 @@ func renderTickets(path string) string {
 			"Status: " + statusEmojis[ticket.Status],
 		}
 
+		if ticket.Status == "open" && !time.Now().After(ticket.ExpiresAt) {
+			details = append(details, "[Fulfill Ticket]("+txlink.Call("FulfillTicket", "ticketID", ticket.ID)+")"+" | "+"[Cancel Ticket]("+txlink.Call("CancelTicket", "ticketID", ticket.ID)+")")
+		}
+
 		str += md.BulletList(details)
 		str += md.HorizontalRule()
 	}
 
 	if page.TotalPages > 1 {
-		str += "\n\nPages: " + page.Picker()
+		str += "\n\nPages: " + page.Picker(page.Pager.PageQueryParam)
 	}
 
 	return str
@@ -139,6 +167,21 @@ func renderNFTMarket(path string) string {
 	var str string
 	str += md.H2("NFT Market")
 	str += md.Paragraph("View all NFT tickets for sale.")
+
+	str += md.Paragraph(
+		"[Sell NFT for Tokens](" + txlink.Call("CreateNFTToTokenTicket",
+			"nftFullPath", "",
+			"tokenKey", "",
+			"minAmountOut", "0",
+			"expiryHours", "24") + ")" +
+			" | " +
+			"[Sell NFT for GNOT](" + txlink.Call("CreateNFTToCoinTicket",
+			"nftFullPath", "",
+			"coinDenom", "ugnot",
+			"minAmountOut", "0",
+			"expiryHours", "24") + ")")
+
+	str += md.HorizontalRule()
 
 	page := GetOpenNFTTickets(path)
 	if len(page.Items) == 0 {
@@ -180,12 +223,16 @@ func renderNFTMarket(path string) string {
 			"Status: " + statusEmojis[ticket.Status],
 		}
 
+		if ticket.Status == "open" && !time.Now().After(ticket.ExpiresAt) {
+			details = append(details, "[Buy NFT]("+txlink.Call("BuyNFT", "ticketID", ticket.ID)+")"+" | "+"[Cancel Ticket]("+txlink.Call("CancelTicket", "ticketID", ticket.ID)+")")
+		}
+
 		str += md.BulletList(details)
 		str += md.HorizontalRule()
 	}
 
 	if page.TotalPages > 1 {
-		str += "\n\nPages: " + page.Picker()
+		str += "\n\nPages: " + page.Picker(page.Pager.PageQueryParam)
 	}
 
 	return str
@@ -195,6 +242,7 @@ func renderPools(path string) string {
 	var str string
 	str += md.H2("Available Pools")
 	str += md.Paragraph("View and interact with liquidity pools.")
+	str += md.Paragraph("[Create Pool](" + txlink.Call("CreatePool") + ")")
 
 	page := GetPoolsPage(path)
 	if len(page.Items) == 0 {
@@ -228,11 +276,13 @@ func renderPools(path string) string {
 				" (1 " + tokenBSymbol + " ≈ " + ufmt.Sprintf("%f", float64(reserveA)/float64(reserveB)) + " " + tokenASymbol + ")",
 		}
 		str += md.BulletList(details)
+		str += md.Paragraph("")
+		str += md.Paragraph("[Add Liquidity](" + txlink.Call("AddLiquidity", "poolKey", poolKey) + ") " + "|" + " [Withdraw Liquidity](" + txlink.Call("WithdrawLiquidity", "poolKey", poolKey) + ")")
 		str += md.HorizontalRule()
 	}
 
 	if page.TotalPages > 1 {
-		str += "\n\nPages: " + page.Picker()
+		str += "\n\nPages: " + page.Picker(page.Pager.PageQueryParam)
 	}
 
 	return str
@@ -285,6 +335,10 @@ func renderTicketHistory(path string) string {
 				"Status: " + statusEmojis[ticket.Status],
 			}
 
+			if ticket.Status == "open" && !time.Now().After(ticket.ExpiresAt) {
+				details = append(details, "[Cancel Ticket]("+txlink.Call("CancelTicket", "ticketID", ticket.ID)+")")
+			}
+
 			str += md.BulletList(details)
 
 		} else {
@@ -330,6 +384,10 @@ func renderTicketHistory(path string) string {
 				"Status: " + statusEmojis[ticket.Status],
 			}
 
+			if ticket.Status == "open" && !time.Now().After(ticket.ExpiresAt) {
+				details = append(details, "[Cancel Ticket]("+txlink.Call("CancelTicket", "ticketID", ticket.ID)+")")
+			}
+
 			str += md.BulletList(details)
 		}
 
@@ -337,7 +395,7 @@ func renderTicketHistory(path string) string {
 	}
 
 	if page.TotalPages > 1 {
-		str += "\n\nPages: " + page.Picker()
+		str += "\n\nPages: " + page.Picker(page.Pager.PageQueryParam)
 	}
 
 	return str
