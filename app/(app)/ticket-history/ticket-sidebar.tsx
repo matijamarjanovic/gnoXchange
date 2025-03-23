@@ -1,10 +1,6 @@
 'use client'
 
-import { useFulfillTicketMutation } from "@/app/services/ticket-history/mutations-and-queries"
-import { validateTicketFulfillment } from "@/app/services/ticket-history/validation"
-import { formatDate, getTicketStatusConfig, showValidationError } from '@/app/utils'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { formatDate, getTicketStatusConfig } from '@/app/utils'
 import { Label } from "@/components/ui/label"
 import {
   Sheet,
@@ -15,20 +11,14 @@ import {
 } from "@/components/ui/sheet"
 import { useWalletAddress } from "@/hooks/use-wallet-address"
 import { ArrowDown, ArrowRight } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useTicketSidebar } from "../contexts/TicketSidebarContext"
 
 export function TicketSidebar() {
   const { selectedTicket, isOpen, setIsOpen, setSelectedTicket } = useTicketSidebar()
-  const [swapAmount, setSwapAmount] = useState("")
   const walletAddress = useWalletAddress()
 
-  const fulfillMutation = useFulfillTicketMutation(() => {
-    handleClose()
-  })
-
   const handleClose = useCallback(() => {
-    setSwapAmount("")
     setSelectedTicket(null)
   }, [setSelectedTicket])
 
@@ -37,24 +27,6 @@ export function TicketSidebar() {
       handleClose()
     }
   }, [isOpen, handleClose])
-
-  const handleFulfillTicket = async () => {
-    if (!selectedTicket) return;
-    
-    const validationError = validateTicketFulfillment(selectedTicket, Number(swapAmount), walletAddress);
-    if (validationError) {
-      showValidationError({
-        title: "Cannot fulfill ticket",
-        description: validationError
-      });
-      return;
-    }
-    
-    await fulfillMutation.mutateAsync({ 
-      ticket: selectedTicket, 
-      amount: Number(swapAmount) 
-    });
-  }
 
   if (!selectedTicket) return null
 
@@ -119,20 +91,6 @@ export function TicketSidebar() {
               <Label className="text-gray-400">Minimum Amount Out</Label>
               <div className="text-sm">{selectedTicket.minAmountOut}</div>
             </div>
-
-            {(selectedTicket.status === 'open' && selectedTicket.assetIn.type !== 'nft') && (
-              <div className="space-y-2">
-                <Label className="text-gray-400">Payment Amount</Label>
-                <Input
-                  type="number"
-                  value={swapAmount}
-                  onChange={(e) => setSwapAmount(e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-gray-200"
-                  placeholder="Enter amount to pay"
-                  disabled={walletAddress === selectedTicket.creator}
-                />
-              </div>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -143,6 +101,8 @@ export function TicketSidebar() {
                   ? `${getTicketStatusConfig('fulfilled').bgColor} ${getTicketStatusConfig('fulfilled').color}`
                   : selectedTicket.status === 'cancelled'
                   ? `${getTicketStatusConfig('cancelled').bgColor} ${getTicketStatusConfig('cancelled').color}`
+                  : selectedTicket.status === 'open'
+                  ? `${getTicketStatusConfig('open').bgColor} ${getTicketStatusConfig('open').color}`
                   : `${getTicketStatusConfig('expired').bgColor} ${getTicketStatusConfig('expired').color}`
               }`}>
                 {selectedTicket.status}
@@ -157,16 +117,6 @@ export function TicketSidebar() {
               <span>{formatDate(selectedTicket.expiresAt)}</span>
             </div>
           </div>
-
-          {(selectedTicket.status === 'open' && selectedTicket.assetIn.type !== 'nft') && (
-            <Button 
-              onClick={handleFulfillTicket}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
-              disabled={!swapAmount || Number(swapAmount) <= 0 || walletAddress === selectedTicket.creator}
-            >
-              {walletAddress === selectedTicket.creator ? 'Cannot fulfill own ticket' : 'Fulfill Ticket'}
-            </Button>
-          )}
         </div>
       </SheetContent>
     </Sheet>

@@ -71,7 +71,7 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
       toast({
         title: "Success",
         description: "NFT listed for sale successfully",
-        variant: "default"
+        variant: "success",
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -83,7 +83,7 @@ export function useCreateNFTTicketMutation(onSuccess?: () => void) {
       toast({
         title: "Error",
         description: error.message || "Failed to list NFT for sale",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   })
@@ -109,7 +109,7 @@ export function useBuyNFTMutation(onSuccess?: () => void) {
       toast({
         title: "Success",
         description: "NFT purchased successfully",
-        variant: "default"
+        variant: "success",
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -121,7 +121,7 @@ export function useBuyNFTMutation(onSuccess?: () => void) {
       toast({
         title: "Error",
         description: error.message || "Failed to purchase NFT",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   })
@@ -142,7 +142,7 @@ export function useCancelNFTSaleMutation(onSuccess?: () => void) {
       toast({
         title: "Success",
         description: "NFT sale cancelled successfully",
-        variant: "default"
+        variant: "success",
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nft-tickets'] }),
@@ -154,7 +154,7 @@ export function useCancelNFTSaleMutation(onSuccess?: () => void) {
       toast({
         title: "Error",
         description: error.message || "Failed to cancel NFT sale",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   })

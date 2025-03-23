@@ -61,9 +61,9 @@ export function useFulfillTicketMutation(onSuccess?: () => void) {
     onSuccess: async (success) => {
       if (success) {
         toast({
+          variant: "success",
           title: "Trade successful",
           description: "Your trade has been completed.",
-          variant: "default"
         })
         await queryClient.invalidateQueries({ queryKey: ['tickets-history'] })
         onSuccess?.()
