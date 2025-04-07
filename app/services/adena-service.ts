@@ -11,9 +11,6 @@ export class AdenaService {
   private constructor() {
     this.sdk = AdenaSDK.createAdenaWallet();
     
-    if (this.isConnected()) {
-      this.reconnectWallet().catch(console.error);
-    }
   }
 
   public static getInstance(): AdenaService {
@@ -30,40 +27,7 @@ export class AdenaService {
     });
     window.dispatchEvent(event);
   }
-
-  private async reconnectWallet(): Promise<void> {
-    try {
-      this.setLoading(true);
-      await this.sdk.connectWallet();
-      
-      this.sdk.onChangeAccount({ callback: (address: string) => {
-        if (address) {
-          this.updateStoredAddress(address);
-        } else {
-          this.clearStoredAddress();
-        }
-      }});
-
-      this.sdk.onChangeNetwork({ callback: (network: string) => {
-        console.log('Network changed:', network);
-        this.updateStoredNetwork(network);
-        this.updateGnoServiceProvider(network);
-      }});
-
-      const account = await this.sdk.getAccount();
-      if (account && account.data?.chainId) {
-        this.updateStoredNetwork(account.data.chainId);
-        this.updateGnoServiceProvider(account.data.chainId);
-      }
-
-    } catch (error) {
-      console.error('Failed to reconnect wallet:', error);
-      this.clearStoredAddress();
-    } finally {
-      this.setLoading(false);
-    }
-  }
-
+  
   public async connectWallet(): Promise<string> {
     try {
       this.setLoading(true);
