@@ -148,7 +148,7 @@ export function CreatePool({ onCloseAction }: CreatePoolProps) {
                 const isDisabled = assetBType && (
                   (asset.type === 'coin' && assetBType.type === 'coin') ||
                   (asset.type === 'token' && asset.path === assetBType.path)
-                )
+                ) || asset.decimals! > 6
                 return (
                   <DropdownMenuItem 
                     className={`flex justify-between items-center ${
@@ -200,7 +200,7 @@ export function CreatePool({ onCloseAction }: CreatePoolProps) {
                 const isDisabled = assetAType && (
                   (asset.type === 'coin' && assetAType.type === 'coin') ||
                   (asset.type === 'token' && asset.path === assetAType.path)
-                )
+                ) || asset.decimals! > 6
                 return (
                   <DropdownMenuItem 
                     className={`flex justify-between items-center ${

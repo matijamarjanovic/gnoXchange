@@ -86,7 +86,7 @@ export function     SellNFT({ onCloseAction, onSubmitAction }: SellNFTProps) {
     .filter(asset => {
       if (asset.type === 'coin') return true
       const isLPToken = asset.symbol?.includes('LP-')
-      return showLPTokens ? true : !isLPToken
+      return (showLPTokens ? true : !isLPToken) && asset.decimals! <= 6
     })
     .sort((a, b) => {
       if (a.type === 'coin') return -1

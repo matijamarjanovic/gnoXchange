@@ -1,7 +1,7 @@
 'use client'
 
 import { Asset } from "@/app/types/types"
-import { formatAmount } from "@/app/utils"
+import { formatAmount, showValidationError } from "@/app/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -11,7 +11,6 @@ import { Coins, Ticket } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { useCreateTicketMutation, useTokensAndBalances } from '../../services/tickets/mutations-and-queries'
 import { validateTicketCreation } from "../../services/tickets/validations"
-import { showValidationError } from "@/app/utils"
 
 interface CreateTicketForm {
   tokenInKey: string
@@ -97,14 +96,14 @@ export function CreateTicket({ onCancelAction, onSuccess }: CreateTicketProps) {
   const filteredAssetsIn = assetsIn.filter(asset => {
     if (asset.type === 'coin') return true
     const isLPToken = asset.symbol?.includes('LP-')
-    return showLPTokens ? true : !isLPToken
+    return (showLPTokens ? true : !isLPToken) && asset.decimals! <= 6
   })
 
   const filteredAssetsOut = assetsOut
     .filter(asset => {
       if (asset.type === 'coin') return true
       const isLPToken = asset.symbol?.includes('LP-')
-      return showLPTokens ? true : !isLPToken
+      return (showLPTokens ? true : !isLPToken) && asset.decimals! <= 6
     })
     .sort((a, b) => {
       if (a.type === 'coin') return -1
